@@ -9,7 +9,7 @@ class Card:
     # ----- CLASS VARIABLES -----
     # lead:     current lead suit
     # trump:    current trump suit
-    lead = 1; # default lead suit is clubs
+    lead = -1; # default lead suit is none
     trump = 3; # default trump suit is hearts
     
     

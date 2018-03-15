@@ -4,7 +4,6 @@ Created on Thu Mar 15 14:45:12 2018
 
 @author: Mikhail
 """
-import Card
 import random as rnd
 
 class Deck:
