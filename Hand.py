@@ -16,14 +16,19 @@ class Hand:
         if c in self.cards:
             self.cards.remove(c);
           
-    # Play a card in our hand, based on an index
+    # Play a card in our hand, based on an index i
     def play(self, i):
         # Finds the card at index i, removes it from the hand and returns it
         return self.cards.pop(i)
+    
+    # Takes index i of card in valid list, and returns index in cards
+    def validToRealIndex(self, i):
+        c = self.validCards()[i];
+        return self.cards.index(c);
      
     # For sorting the cards in hand
     def sort(self):
-        self.cards.sort();
+        self.cards.sort(reverse=True);
         
     # Returns a list of valid cards to be played, based on the lead suit. When
     # no lead suit has been established, Card.lead = -1.

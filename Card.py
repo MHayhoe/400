@@ -10,15 +10,15 @@ class Card:
     # lead:     current lead suit
     # trump:    current trump suit
     lead = -1; # default lead suit is none
-    trump = 3; # default trump suit is hearts
+    trump = 2; # default trump suit is hearts
     
     
     # ----- OBJECT VARIABLES -----
-    # value:    value of the card. 1 = Ace, 11 = Jack, 12 = Queen, 13 = King.
-    # suit:     suit of the card. 1 = Clubs, 2 = Diamonds, 3 = Hearts, 4 = Spades.
+    # value:    value of the card. 11 = Jack, 12 = Queen, 13 = King, 14 = Ace.
+    # suit:     suit of the card. 0 = Clubs, 1 = Diamonds, 2 = Hearts, 3 = Spades.
     
     # Constructor; default is Ace of Spades.
-    def __init__(self, v=1, s=4):
+    def __init__(self, v=14, s=4):
         self.value = v;
         self.suit = s;
     
@@ -26,8 +26,8 @@ class Card:
     # ----- PRINTING METHODS -----
     # String representation
     def __str__(self):
-        # First add the value, changing to a named card if necessary (ex. 1 -> A)
-        if self.value == 1:
+        # First add the value, changing to a named card if necessary (ex. 14 -> A)
+        if self.value == 14:
             string = 'A';
         elif self.value == 11:
             string = 'J';
@@ -62,6 +62,16 @@ class Card:
             string += str(c) + ', ';
         
         return string[0:-2] + '>';
+    
+    # For printing lists of cards, with their indices
+    @staticmethod
+    def printListIndices(cards):
+        string = ''
+        
+        for i in range(len(cards)):
+            string += str(i) + ': ' + str(cards[i]) + ', ';
+        
+        return string[0:-2];
 
 
     # ----- COMPARISON METHODS -----
