@@ -25,6 +25,7 @@ H = [Hand(deck.deal(13)) for i in range(4)];
 h = [[0 for i in range(4)] for t in range(num_rounds)]
 T = [-1 for i in range(num_rounds)]
 
+
 # ----- METHODS -----
 # For verifying human input
 def isInt(s):
@@ -66,42 +67,52 @@ def aiInput(p, strategy=1):
 
 # Find the winning player from a trick
 def winner(cards):
-    return cards.index(max(cards))
+    srtd = sorted(cards,reverse=True)
+    return cards.index(srtd[0])
 
 
 # ----- BETTING ROUND -----
 # To be done
 
 # ----- PLAYING ROUNDS -----
+def initializeRound(n=13):
+    # Make a new deck with n cards of each suit, and shuffle it.
+    deck = Deck(n);
+    deck.shuffle();
+    
+    # Deal 13 cards to each player
+    H = [Hand(deck.deal(13)) for i in range(4)];
+    h = [[0 for i in range(4)] for t in range(num_rounds)]
+    T = [-1 for i in range(num_rounds)]
 
-for t in range(0, num_rounds):
-    # No lead suit yet
-    Card.lead = -1;
+def playRound(n=13):
+    initializeRound(n);
     
-    # Loop through players
-    for p in range(4):
-        if t > 0: # The previous winner should go first, then continue in order
-            p = (p + T[t-1]) % 4;
+    for t in range(0, num_rounds):
+        # No lead suit yet
+        Card.lead = -1;
         
-        if player_strategy[p] == 0: # Ask for human input
-            h[t][p] = humanInput(p);
-        else:                   # Ask for AI input with strategy in player_strategy[p]
-            h[t][p] = aiInput(p, player_strategy[p]);
-        
-        # Set the lead suit, if it hasn't been yet
-        if Card.lead == -1:
-            Card.lead = h[t][p].suit;
+        # Loop through players
+        for p in range(4):
+            if t > 0: # The previous winner should go first, then continue in order
+                p = (p + T[t-1]) % 4;
             
-        # Display what was played
-        print str(p + 1) + ':  ' + str(h[t][p])
-        print ''
-    
-    # Find the winning player from the cards played this round
-    T[t] = winner(h[t]);
-    print 'Player ' + str(T[t] + 1) + ' won the trick.'
-    
-print T
-    
-    
+            if player_strategy[p] == 0: # Ask for human input
+                h[t][p] = humanInput(p);
+            else:                   # Ask for AI input with strategy in player_strategy[p]
+                h[t][p] = aiInput(p, player_strategy[p]);
+            
+            # Set the lead suit, if it hasn't been yet
+            if Card.lead == -1:
+                Card.lead = h[t][p].suit;
+                
+            # Display what was played
+            print str(p + 1) + ':  ' + str(h[t][p])
+            print ''
+        
+        # Find the winning player from the cards played this round
+        T[t] = winner(h[t]);
+        print 'Player ' + str(T[t] + 1) + ' won the trick.'
+        
     
     
