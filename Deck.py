@@ -12,7 +12,7 @@ class Deck:
         self.cards = [];
         
         # Add all cards to the deck
-        for s in range(1,5):
+        for s in range(0,4):
             for v in range(2,n+2):
                 self.cards.append(Card(v, s))
     

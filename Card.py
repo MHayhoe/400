@@ -18,7 +18,7 @@ class Card:
     # suit:     suit of the card. 0 = Clubs, 1 = Diamonds, 2 = Hearts, 3 = Spades.
     
     # Constructor; default is Ace of Spades.
-    def __init__(self, v=14, s=4):
+    def __init__(self, v=14, s=3):
         self.value = v;
         self.suit = s;
     
@@ -42,13 +42,13 @@ class Card:
         string += '-'
         
         # Add the suit
-        if self.suit == 1:
+        if self.suit == 0:
             string += 'C'
-        elif self.suit == 2:
+        elif self.suit == 1:
             string += 'D'
-        elif self.suit == 3:
+        elif self.suit == 2:
             string += 'H'
-        elif self.suit == 4:
+        elif self.suit == 3:
             string += 'S'
             
         return string

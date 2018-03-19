@@ -14,7 +14,7 @@ num_rounds = 13;
 # 0:    human
 # 1:    random - play a valid card at random
 # 2:    highest - play the highest valid card
-player_strategy = [2, 1, 1, 1];
+player_strategy = [0, 2, 1, 1];
 
 # Make a new deck, and shuffle it.
 deck = Deck();
@@ -64,7 +64,7 @@ def aiInput(p, strategy=1):
         ind = rnd.randint( 0, len(H[p].validCards()) - 1 )
         return H[p].play( H[p].validToRealIndex(ind) )
 
-# Finda the winning player from a trick
+# Find the winning player from a trick
 def winner(cards):
     return cards.index(max(cards))
 
