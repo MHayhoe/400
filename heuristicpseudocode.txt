@@ -1,0 +1,20 @@
+IF last player:
+	If tricks[partner] >= bet[partner]
+		if any card in hand can win
+			play min(winners) 
+		else play smallest card in valid cards
+	if tricks[partner] < bet[partner]
+		if tricks[me] >= tricks[me]
+			play smallest card in valid cards
+		else
+			if any card in hand can win
+				play min(winners)
+			else play smallest card in valid cards
+if 2ndtolast player:
+	
+
+
+IF tricks<bet and partner tricks >= partner bet
+
+
+ELSE
