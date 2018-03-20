@@ -6,7 +6,7 @@ Created on Thu Mar 15 15:44:48 2018
 @author: Mikhail
 """
 import random as rnd
-
+from Deck import Deck
 # Variables
 num_rounds = 13;
 

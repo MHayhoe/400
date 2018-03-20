@@ -4,6 +4,7 @@ Created on Thu Mar 15 14:15:52 2018
 
 @author: Mikhail
 """
+from Card import Card
 class Hand:
     # cards - list of Card objects, representing what's in the hand.
     
