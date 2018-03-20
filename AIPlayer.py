@@ -17,6 +17,7 @@ class AIPlayer:
 
 
     # ----- Get Action -----
-    def get_action(self, state,feasible_actions):
+    def get_action(self, state,actions):
+        feasible_actions=actions;
         return self.strategy(state,feasible_actions)
 
