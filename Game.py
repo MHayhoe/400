@@ -6,7 +6,9 @@ Created on Thu Mar 15 15:44:48 2018
 @author: Mikhail
 """
 import random as rnd
+from Hand import Hand
 from Deck import Deck
+from Card import Card
 # Variables
 num_rounds = 13;
 
@@ -14,8 +16,8 @@ num_rounds = 13;
 # 0:    human
 # 1:    random - play a valid card at random
 # 2:    highest - play the highest valid card
-player_strategy = [0, 2, 1, 1];
-
+#player_strategy = [0, 2, 1, 1];
+player_strategy = [0,2,2,2];
 # Make a new deck, and shuffle it.
 deck = Deck();
 deck.shuffle();
@@ -24,7 +26,7 @@ deck.shuffle();
 H = [Hand(deck.deal(13)) for i in range(4)];
 h = [[0 for i in range(4)] for t in range(num_rounds)]
 T = [-1 for i in range(num_rounds)]
-
+bets = [0 for i in range(4)]
 
 # ----- METHODS -----
 # For verifying human input
@@ -53,10 +55,21 @@ def humanInput(p):
        card_index = input('Invalid. Pick again (from VALID): ')
     
     return H[p].play( H[p].validToRealIndex( int(card_index) ) )
-
+# To handle human bet for player p
+def humanBet(p):
+    # Show them their hand
+    H[p].sort()
+    print 'Player ' + str(p + 1) + '\'s Hand: ' + str(H[p])
+    bet = input('Bet tricks to take:')
+    while not(bet>1):
+        #ask for new bet
+        bet = input('The minimum bet is 2.')
+    return bet
 # To handle AI decisions for player p
 def aiInput(p, strategy=1):
-    if strategy == 2: # Heuristic: pick the highest playable card every time
+    if strategy == 3: #simple heuristic
+        return
+    if strategy == 2: # Myopic Greedy: pick the highest playable card every time
         # Sort the hand, so when we pick a valid card it will be the biggest valid card
         H[p].sort()
         return H[p].play( H[p].validToRealIndex(0) );
@@ -64,6 +77,17 @@ def aiInput(p, strategy=1):
         # Pick a valid card at random
         ind = rnd.randint( 0, len(H[p].validCards()) - 1 )
         return H[p].play( H[p].validToRealIndex(ind) )
+#To handle AI bets for player p
+def aiBet(p, strategy=1):
+    if strategy==3:
+        bet = rnd.randint(2,5)
+        return bet
+    if strategy==2:
+        bet = rnd.randint(2,5)
+        return bet
+    if strategy==1:#random player
+        bet = rnd.randint(2,5)
+        return bet
 
 # Find the winning player from a trick
 def winner(cards):
@@ -73,6 +97,14 @@ def winner(cards):
 
 # ----- BETTING ROUND -----
 # To be done
+def bettingRound():
+    for p in range(4):
+        if player_strategy[p] ==0: #ask for human bet
+            bets[p] = humanBet(p)
+        else:
+            bets[p] = aiBet(p,player_strategy[p])
+        print 'Player ' + str(p) + ' bet '  +str(bets[p])
+
 
 # ----- PLAYING ROUNDS -----
 def initializeRound(n=13):
@@ -87,7 +119,7 @@ def initializeRound(n=13):
 
 def playRound(n=13):
     initializeRound(n);
-    
+    bettingRound()
     for t in range(0, num_rounds):
         # No lead suit yet
         Card.lead = -1;
@@ -115,4 +147,4 @@ def playRound(n=13):
         print 'Player ' + str(T[t] + 1) + ' won the trick.'
         
     
-    
+playRound()
