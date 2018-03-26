@@ -125,7 +125,7 @@ def playRound(n=13):
     initialbets = bets
     card_played_by = {card.__str__():None for card in Deck().cards}
     suit_trumped_by = {i:set() for i in range(4)}
-    bet_deficits = bets
+    bet_deficits = list(bets)
     for t in range(0, num_rounds):
         # No lead suit yet
         Card.lead = -1;
