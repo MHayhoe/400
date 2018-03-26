@@ -9,7 +9,8 @@ import random as rnd
 from Hand import Hand
 from Deck import Deck
 from Card import Card
-# Variables
+from heuristicAI import heuristicChoice
+#Variables
 num_rounds = 13;
 
 # Strategy for each player:
@@ -17,7 +18,7 @@ num_rounds = 13;
 # 1:    random - play a valid card at random
 # 2:    highest - play the highest valid card
 #player_strategy = [0, 2, 1, 1];
-player_strategy = [2,2,2,2];
+player_strategy = [3,2,2,2];
 # Make a new deck, and shuffle it.
 deck = Deck();
 deck.shuffle();
@@ -66,9 +67,10 @@ def humanBet(p):
         bet = input('The minimum bet is 2.')
     return bet
 # To handle AI decisions for player p
-def aiInput(p, strategy=1):
+def aiInput(p, strategy,valid_cards, card_played_by,cards_this_round,suit_trumped_by,bet_deficits):
     if strategy == 3: #simple heuristic
-        return
+        valid_idx= heuristicChoice(p,valid_cards,card_played_by,cards_this_round,suit_trumped_by,bet_deficits)
+        return H[p].play(H[p].validToRealIndex(valid_idx))
     if strategy == 2: # Myopic Greedy: pick the highest playable card every time
         # Sort the hand, so when we pick a valid card it will be the biggest valid card
         H[p].sort()
@@ -111,7 +113,7 @@ def initializeRound(n=13):
     # Make a new deck with n cards of each suit, and shuffle it.
     deck = Deck(n);
     deck.shuffle();
-    
+
     # Deal 13 cards to each player
     H = [Hand(deck.deal(n)) for i in range(4)];
     h = [[0 for i in range(4)] for t in range(num_rounds)]
@@ -120,10 +122,14 @@ def initializeRound(n=13):
 def playRound(n=13):
     initializeRound(n);
     bettingRound()
+    initialbets = bets
+    card_played_by = {card.__str__():None for card in Deck().cards}
+    suit_trumped_by = {i:set() for i in range(4)}
+    bet_deficits = bets
     for t in range(0, num_rounds):
         # No lead suit yet
         Card.lead = -1;
-        
+        cards_this_round = {i: None for i in range(4)}
         # Loop through players
         for p in range(4):
             if t > 0: # The previous winner should go first, then continue in order
@@ -132,7 +138,7 @@ def playRound(n=13):
             if player_strategy[p] == 0: # Ask for human input
                 h[t][p] = humanInput(p);
             else:                   # Ask for AI input with strategy in player_strategy[p]
-                h[t][p] = aiInput(p, player_strategy[p]);
+                h[t][p] = aiInput(p, player_strategy[p],H[p].validCards(),card_played_by,cards_this_round,suit_trumped_by,bet_deficits);
             
             # Set the lead suit, if it hasn't been yet
             if Card.lead == -1:
@@ -141,16 +147,26 @@ def playRound(n=13):
             # Display what was played
             print str(p + 1) + ':  ' + str(h[t][p])
             print ''
-        
+            #update the card_played_by dict
+            card_played_by[str(h[t][p])]=p
+            if Card.lead in [1,2,4]:
+                if h[t][p].suit == 3:
+                    suit_trumped_by[Card.lead].add(p)
+
         # Find the winning player from the cards played this round
         T[t] = winner(h[t]);
         print 'Player ' + str(T[t] + 1) + ' won the trick.'
+        bet_deficits[T[t]] -= 1
         
-def getFinalScores():
+def getFinalScores(bets,T):
     for p in range(4):
         tricks_p = sum(T[t] ==p for t in range(13))
         bet_p = bets[p]
+        print bets[p]
         chg_score = (2*(tricks_p>= bet_p)-1)*bet_p
         print 'Player ' + str(p) + ' bet ' +str(bet_p) + ' and won ' +str(tricks_p) + ' for a total of ' + str(chg_score)
+
+
 playRound()
-getFinalScores()
+print(bets)
+getFinalScores(bets,T)
