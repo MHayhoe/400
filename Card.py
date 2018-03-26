@@ -126,4 +126,3 @@ class Card:
     # Test if I'm less than or equal to other
     def __le__(self, other):
         return not(self > other)
-        

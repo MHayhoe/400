@@ -85,3 +85,7 @@ class Hand:
         return val_ct
     def trump_ct(self):
         return sum( card.trump==card.suit for card in self.cards)
+    def get_suit(self,suit):
+        return [card for card in self.cards if card.suit==suit]
+    def max_suit(self,suit):
+        return max(self.get_suit(suit))
