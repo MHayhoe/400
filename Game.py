@@ -147,6 +147,8 @@ def playRound(n=13):
             # Display what was played
             print str(p + 1) + ':  ' + str(h[t][p])
             print ''
+            #update
+            cards_this_round[p] = h[t][p]
             #update the card_played_by dict
             card_played_by[str(h[t][p])]=p
             if Card.lead in [1,2,4]:

@@ -7,11 +7,15 @@ Created on Tue Mar 20 00:13 2018
 from Hand import Hand
 from Deck import Deck
 from Card import Card
+from pprint import pprint
+
 
 import random as rnd
 def heuristicChoice(p,valid_cards, card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by):
+    print cards_this_round
     #determine position of player
     pos = determine_position(p,cards_this_round)
+    print pos
     #get partner player index
     partner = (p+2)%4
     leadsuit = valid_cards[0].lead
@@ -23,14 +27,19 @@ def heuristicChoice(p,valid_cards, card_played_by,cards_this_round,suit_trumped_
     cur_max = current_max_card(cards_this_round)
     current_winner = currently_winning_player(cur_max, cards_this_round)
     chosen_card = choose_card(p,pos,cur_max, valid_cards, current_winner, lead_cards,trump_cards, throwaway_cards,partner,bet_deficits,suit_trumped_by,cards_played_by)
+    print 'valid cards: '
+    pprint( [str(card) for card in valid_cards])
     if chosen_card is None:
         print 'warning: chosen card was none'
         return rnd.randint(0,len(valid_cards)-1)
     print chosen_card
     print [str(card) for card in valid_cards]
     chosen_card_valid_idx = None
-    for i in range(0,len(valid_cards)-1):
-        if chosen_card==valid_cards[i]:
+    for i in range(0,len(valid_cards)):
+        print 'range check'
+        print str(chosen_card)
+        print str(valid_cards[i])
+        if str(chosen_card)== str(valid_cards[i]):
             chosen_card_valid_idx=i
     print chosen_card_valid_idx
     if chosen_card_valid_idx is None:
@@ -50,23 +59,35 @@ def current_max_card(cards_this_round):
 def currently_winning_player(cur_max, cards_this_round):
 
     for i in range(4):
-        if cards_this_round[i]==cur_max:
-            return i
+        if cards_this_round[i] is not None:
+            if cards_this_round[i]==cur_max:
+                return i
     else:
         return None
 def choose_card(p,pos,cur_max,valid_cards,winner, suitc,trumpc, throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
-    if pos ==1:
+
+    if pos == 1:
         choice = move_first(p,cur_max, valid_cards,winner,suitc,trumpc, throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
-    if pos ==2:
+    if pos == 2:
         choice = move_second(p,cur_max,valid_cards,winner,suitc,trumpc, throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
     if pos == 3:
         choice = move_third(p,cur_max, valid_cards,winner,suitc, trumpc, throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
-    else:
+    if pos == 4:
         choice = move_fourth(p,cur_max,valid_cards,winner, suitc,trumpc, throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
+
+    print 'chosen card : ' +str( choice)
     return choice
 def move_first(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
     #choice = choose_random(valid_cards)
-    choice = move_not_last(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
+    max_val = -1
+    max_card = None
+    choice = None
+    for card in valid_cards:
+        if card.value > max_val and card.suit != Card.trump:
+            max_card = card
+    choice = max_card
+    if choice is None:
+        choice = min(valid_cards)
     return choice
 
 def move_second(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
@@ -114,25 +135,29 @@ def move_last(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_d
     winnable = min_winnable(cur_max, suitc, trumpc)
     losable = min_throwable(suitc, throwc, trumpc)
     #if partner is not winning, try to win if possible, or throw lowest card
+    choice = None
     if winner!=prtner_idx:
         if winnable is not None:
             print 'winnable: ' + str(winnable)
             print 'safe?: ' + 'moving last - always safe'
-            return winnable
+            choice = winnable
         else:
             print 'Winnable: ' + str(winnable)
             print 'losable: ' + str(losable)
-            return losable
+            choice = losable
     #if partner is winning, try to win if partners deficit is less than own
     else:
         if bet_deficits[prtner_idx]<bet_deficits[p] and winnable is not None:
             print 'take from partner - sorry! :' + str(winnable)
-            return winnable
+            choice = winnable
         else:
             print 'give to partner : ' + str(losable)
-            return losable
+            choice = losable
+    return choice
 def determine_position(p,cards_this_round):
-    return 4-sum([cards_this_round[i]==None for i in range(4)])
+    position = 4 - sum([cards_this_round[i] is None for i in range(4)])+1
+    print position
+    return position
 def max_lead_suit(valid_cards):
     return max([card for card in valid_cards if card.suit==card.lead ])
 def min_lead_suit(valid_cards):
