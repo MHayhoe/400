@@ -67,9 +67,9 @@ def humanBet(p):
         bet = input('The minimum bet is 2.')
     return bet
 # To handle AI decisions for player p
-def aiInput(p, strategy,valid_cards, card_played_by,cards_this_round,suit_trumped_by,bet_deficits):
+def aiInput(p, strategy,valid_cards, card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by):
     if strategy == 3: #simple heuristic
-        valid_idx= heuristicChoice(p,valid_cards,card_played_by,cards_this_round,suit_trumped_by,bet_deficits)
+        valid_idx= heuristicChoice(p,valid_cards,card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by)
         return H[p].play(H[p].validToRealIndex(valid_idx))
     if strategy == 2: # Myopic Greedy: pick the highest playable card every time
         # Sort the hand, so when we pick a valid card it will be the biggest valid card
@@ -138,7 +138,7 @@ def playRound(n=13):
             if player_strategy[p] == 0: # Ask for human input
                 h[t][p] = humanInput(p);
             else:                   # Ask for AI input with strategy in player_strategy[p]
-                h[t][p] = aiInput(p, player_strategy[p],H[p].validCards(),card_played_by,cards_this_round,suit_trumped_by,bet_deficits);
+                h[t][p] = aiInput(p, player_strategy[p],H[p].validCards(),card_played_by,cards_this_round,suit_trumped_by,bet_deficits,card_played_by);
             
             # Set the lead suit, if it hasn't been yet
             if Card.lead == -1:

@@ -78,7 +78,7 @@ class Card:
 
         for i in range(self.value+1,15):
             higher_cards.append(Card(i,self.suit))
-        if card.suit != card.trump:
+        if self.suit != Card.trump:
             for i in range(2,15):
                 higher_cards.append(Card(i, self.trump))
         return higher_cards
