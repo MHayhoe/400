@@ -17,7 +17,7 @@ num_rounds = 13;
 # 1:    random - play a valid card at random
 # 2:    highest - play the highest valid card
 #player_strategy = [0, 2, 1, 1];
-player_strategy = [0,2,2,2];
+player_strategy = [2,2,2,2];
 # Make a new deck, and shuffle it.
 deck = Deck();
 deck.shuffle();
@@ -113,7 +113,7 @@ def initializeRound(n=13):
     deck.shuffle();
     
     # Deal 13 cards to each player
-    H = [Hand(deck.deal(13)) for i in range(4)];
+    H = [Hand(deck.deal(n)) for i in range(4)];
     h = [[0 for i in range(4)] for t in range(num_rounds)]
     T = [-1 for i in range(num_rounds)]
 
@@ -146,5 +146,11 @@ def playRound(n=13):
         T[t] = winner(h[t]);
         print 'Player ' + str(T[t] + 1) + ' won the trick.'
         
-    
+def getFinalScores():
+    for p in range(4):
+        tricks_p = sum(T[t] ==p for t in range(13))
+        bet_p = bets[p]
+        chg_score = (2*(tricks_p>= bet_p)-1)*bet_p
+        print 'Player ' + str(p) + ' bet ' +str(bet_p) + ' and won ' +str(tricks_p) + ' for a total of ' + str(chg_score)
 playRound()
+getFinalScores()

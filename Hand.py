@@ -44,8 +44,44 @@ class Hand:
             return lst
         else: # No cards of lead suit, so all are valid
             return self.cards;
-    
+
     # ----- PRINTING METHODS -----
     # String representation
     def __str__(self):
         return Card.printList(self.cards)
+    def print_sorted(self):
+        sorted_list = []
+        for i in range(4):
+            suit_cards = []
+            for c in range(len(self.cards)):
+                if self.cards[c].suit==i:
+                    suit_cards.append(self.cards[c])
+            suit_cards.sort(reverse=True)
+            sorted_list = sorted_list + suit_cards
+        return Card.printList(sorted_list)
+    #------ COUNTING METHODS -----
+    def suit_count(self):
+        suit_ct = {i: 0 for i in range(4)}
+        for c in self.cards:
+            suit_ct[c.suit] +=1
+        return suit_ct
+    def ace_by_suit(self):
+        ace_ct = {i: 0 for i in range(4)}
+        for card in self.cards:
+            if card.value==14:
+                ace_ct[card.suit] +=1
+        return ace_ct
+    def king_by_suit(self):
+        king_ct = {i: 0 for i in range(4)}
+        for card in self.cards:
+            if card.value==13:
+                king_ct[card.suit] +=1
+        return king_ct
+    def card_ct(self,card_val):
+        val_ct = {i: 0 for i in range(4)}
+        for card in self.cards:
+            if card.value==card_val:
+                val_ct[card.suit] +=1
+        return val_ct
+    def trump_ct(self):
+        return sum( card.trump==card.suit for card in self.cards)
