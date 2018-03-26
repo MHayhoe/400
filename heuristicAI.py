@@ -65,16 +65,22 @@ def choose_card(p,pos,cur_max,valid_cards,winner, suitc,trumpc, throwc,prtner_id
         choice = move_fourth(p,cur_max,valid_cards,winner, suitc,trumpc, throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
     return choice
 def move_first(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
-    choice = choose_random(valid_cards)
+    #choice = choose_random(valid_cards)
+    choice = move_not_last(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
     return choice
 
 def move_second(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
-    choice = choose_random(valid_cards)
+    #choice = choose_random
+    choice = move_not_last(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
     return choice
 def move_third(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
-    choice = choose_random(valid_cards)
+    #choice = choose_random(valid_cards)
+    choice = move_not_last(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
     return choice
 def move_fourth(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
+    choice = move_last(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
+    return choice
+def move_not_last(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
     #find smallest card that wins, if it exists
     winnable = min_winnable(cur_max, suitc, trumpc)
     losable = min_throwable(suitc, throwc, trumpc)
@@ -91,6 +97,28 @@ def move_fourth(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet
                 return winnable
             else:
                 return losable
+        else:
+            print 'Winnable: ' + str(winnable)
+            print 'losable: ' + str(losable)
+            return losable
+    #if partner is winning, try to win if partners deficit is less than own
+    else:
+        if bet_deficits[prtner_idx]<bet_deficits[p] and winnable is not None:
+            print 'take from partner - sorry! :' + str(winnable)
+            return winnable
+        else:
+            print 'give to partner : ' + str(losable)
+            return losable
+def move_last(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
+    #find smallest card that wins, if it exists
+    winnable = min_winnable(cur_max, suitc, trumpc)
+    losable = min_throwable(suitc, throwc, trumpc)
+    #if partner is not winning, try to win if possible, or throw lowest card
+    if winner!=prtner_idx:
+        if winnable is not None:
+            print 'winnable: ' + str(winnable)
+            print 'safe?: ' + 'moving last - always safe'
+            return winnable
         else:
             print 'Winnable: ' + str(winnable)
             print 'losable: ' + str(losable)
