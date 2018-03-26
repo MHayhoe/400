@@ -6,6 +6,7 @@ Created on Thu Mar 15 14:45:12 2018
 """
 import random as rnd
 from Card import Card
+from Card import Card
 class Deck:
     # Constructor; make all possible cards in the deck, assuming a max value of n (default is 13).
     def __init__(self,n=13):

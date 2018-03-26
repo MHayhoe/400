@@ -73,6 +73,15 @@ class Card:
         
         return string[0:-2];
 
+    def get_higher_cards(self):
+        higher_cards = []
+
+        for i in range(self.value+1,15):
+            higher_cards.append(Card(i,self.suit))
+        if card.suit != card.trump:
+            for i in range(2,15):
+                higher_cards.append(Card(i, self.trump))
+        return higher_cards
 
     # ----- COMPARISON METHODS -----
     # Test for card equality
