@@ -32,12 +32,12 @@ bets = [0 for i in range(4)]
 # ----- METHODS -----
 # For verifying human input
 def isInt(s):
-    try: 
+    try:
         int(s)
         return True
     except ValueError:
         return False
-    
+
 # To handle human input for player p
 def humanInput(p):
     # Show them their hand
@@ -46,15 +46,15 @@ def humanInput(p):
     # Save and display the list of valid cards
     valid_cards = H[p].validCards();
     print 'VALID cards: ' + Card.printListIndices( valid_cards ),
-    
+
     # Ask for input
     card_index = input('Pick index of VALID card to play: ')
-    
+
     # Check if the chosen index was valid
     while not( isInt(card_index) ) or card_index < 0 or card_index >= len(valid_cards):
        # Ask for input
        card_index = input('Invalid. Pick again (from VALID): ')
-    
+
     return H[p].play( H[p].validToRealIndex( int(card_index) ) )
 # To handle human bet for player p
 def humanBet(p):
@@ -82,13 +82,16 @@ def aiInput(p, strategy,valid_cards, card_played_by,cards_this_round,suit_trumpe
 #To handle AI bets for player p
 def aiBet(p, strategy=1):
     if strategy==3:
-        bet = rnd.randint(2,5)
+        #bet = rnd.randint(2,5)
+        bet = min(sum(H[p].ace_by_suit().values()) + sum(H[p].king_by_suit().values()) + round(H[p].trump_ct()/4), 13)
         return bet
     if strategy==2:
-        bet = rnd.randint(2,5)
+        bet = min(sum(H[p].ace_by_suit().values()) + sum(H[p].king_by_suit().values()) + round(H[p].trump_ct()/4), 13)
+        #bet = rnd.randint(2,5)
         return bet
     if strategy==1:#random player
-        bet = rnd.randint(2,5)
+        bet = min(sum(H[p].ace_by_suit().values()) + sum(H[p].king_by_suit().values()) + round(H[p].trump_ct()/4), 13)
+        #bet = rnd.randint(2,5)
         return bet
 
 # Find the winning player from a trick
@@ -105,16 +108,20 @@ def bettingRound():
             bets[p] = humanBet(p)
         else:
             bets[p] = aiBet(p,player_strategy[p])
-        print 'Player ' + str(p) + ' bet '  +str(bets[p])
+        #print 'Player ' + str(p) + ' bet '  +str(bets[p])
 
 
 # ----- PLAYING ROUNDS -----
 def initializeRound(n=13):
     # Make a new deck with n cards of each suit, and shuffle it.
+    global deck
     deck = Deck(n);
     deck.shuffle();
 
     # Deal 13 cards to each player
+    global H
+    global h
+    global T
     H = [Hand(deck.deal(n)) for i in range(4)];
     h = [[0 for i in range(4)] for t in range(num_rounds)]
     T = [-1 for i in range(num_rounds)]
@@ -134,19 +141,19 @@ def playRound(n=13):
         for p in range(4):
             if t > 0: # The previous winner should go first, then continue in order
                 p = (p + T[t-1]) % 4;
-            
+
             if player_strategy[p] == 0: # Ask for human input
                 h[t][p] = humanInput(p);
             else:                   # Ask for AI input with strategy in player_strategy[p]
                 h[t][p] = aiInput(p, player_strategy[p],H[p].validCards(),card_played_by,cards_this_round,suit_trumped_by,bet_deficits,card_played_by);
-            
+
             # Set the lead suit, if it hasn't been yet
             if Card.lead == -1:
                 Card.lead = h[t][p].suit;
-                
+
             # Display what was played
-            print str(p + 1) + ':  ' + str(h[t][p])
-            print ''
+            #print str(p + 1) + ':  ' + str(h[t][p])
+            #print ''
             #update
             cards_this_round[p] = h[t][p]
             #update the card_played_by dict
@@ -157,18 +164,115 @@ def playRound(n=13):
 
         # Find the winning player from the cards played this round
         T[t] = winner(h[t]);
-        print 'Player ' + str(T[t] + 1) + ' won the trick.'
+        #print 'Player ' + str(T[t] + 1) + ' won the trick.'
         bet_deficits[T[t]] -= 1
-        
+
 def getFinalScores(bets,T):
+    scores = [0, 0, 0, 0];
     for p in range(4):
         tricks_p = sum(T[t] ==p for t in range(13))
         bet_p = bets[p]
-        print bets[p]
+        #print bets[p]
         chg_score = (2*(tricks_p>= bet_p)-1)*bet_p
-        print 'Player ' + str(p) + ' bet ' +str(bet_p) + ' and won ' +str(tricks_p) + ' for a total of ' + str(chg_score)
+        #print 'Player ' + str(p) + ' bet ' +str(bet_p) + ' and won ' +str(tricks_p) + ' for a total of ' + str(chg_score)
+        scores[p]=chg_score
+    return scores
 
 
-playRound()
-print(bets)
-getFinalScores(bets,T)
+#let's test heurstic vs greedy
+total_score_rando = 0
+total_score_heuristic = 0
+wins_rando = 0
+wins_heuristic = 0
+ties = 0
+num_tests = 1000
+player_strategy = [3,2,3,2];
+
+for i in range(num_tests):
+    playRound()
+    #print(bets)
+    scores = getFinalScores(bets, T)
+    rando_score = scores[1]+scores[3]
+    heuristic_score = scores[0]+scores[2]
+    total_score_rando += rando_score
+    total_score_heuristic += heuristic_score
+    if rando_score < heuristic_score:
+        wins_heuristic += 1
+    if rando_score > heuristic_score:
+        wins_rando += 1
+    if rando_score == heuristic_score:
+        ties +=1
+
+print('Heuristic vs Greedy')
+print(wins_heuristic)
+print(wins_rando)
+print(ties)
+print(total_score_heuristic)
+print(total_score_rando)
+
+#playRound()
+#print(bets)
+#getFinalScores(bets,T)
+
+
+# let's test heuristic vs rando
+total_score_rando = 0
+total_score_heuristic = 0
+wins_rando = 0
+wins_heuristic = 0
+ties = 0
+num_tests = 1000
+player_strategy = [3, 1, 3, 1];
+
+for i in range(num_tests):
+    playRound()
+    #print(bets)
+    scores = getFinalScores(bets, T)
+    rando_score = scores[1] + scores[3]
+    heuristic_score = scores[0] + scores[2]
+    total_score_rando += rando_score
+    total_score_heuristic += heuristic_score
+    if rando_score < heuristic_score:
+        wins_heuristic += 1
+    if rando_score > heuristic_score:
+        wins_rando += 1
+    if rando_score == heuristic_score:
+        ties += 1
+
+print('Heuristic vs Random')
+print(wins_heuristic)
+print(wins_rando)
+print(ties)
+print(total_score_heuristic)
+print(total_score_rando)
+
+# let's test greedy vs rando
+total_score_rando = 0
+total_score_heuristic = 0
+wins_rando = 0
+wins_heuristic = 0
+ties = 0
+num_tests = 1000
+player_strategy = [2, 1, 2, 1];
+
+for i in range(num_tests):
+    playRound()
+    #print(bets)
+    scores = getFinalScores(bets, T)
+    rando_score = scores[1] + scores[3]
+    heuristic_score = scores[0] + scores[2]
+    total_score_rando += rando_score
+    total_score_heuristic += heuristic_score
+    if rando_score < heuristic_score:
+        wins_heuristic += 1
+    if rando_score > heuristic_score:
+        wins_rando += 1
+    if rando_score == heuristic_score:
+        ties += 1
+
+print('Greedy vs Random')
+print(wins_heuristic)
+print(wins_rando)
+print(ties)
+print(total_score_heuristic)
+print(total_score_rando)
