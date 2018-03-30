@@ -50,33 +50,26 @@ def heuristicChoice(p,valid_cards, card_played_by,cards_this_round,suit_trumped_
         return rnd.randint(0,len(valid_cards)-1)
 
     return chosen_card_valid_idx
-def current_max_card(cards_this_round):
-    non_null_cards = [card for card in cards_this_round.values() if card is not None]
-    if len(non_null_cards)>0:
-        return max(non_null_cards)
-    else:
-        return None
-def currently_winning_player(cur_max, cards_this_round):
 
-    for i in range(4):
-        if cards_this_round[i] is not None:
-            if cards_this_round[i]==cur_max:
-                return i
-    else:
-        return None
+    
+# Pick a card to play
 def choose_card(p,pos,cur_max,valid_cards,winner, suitc,trumpc, throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
 
     if pos == 1:
         choice = move_first(p,cur_max, valid_cards,winner,suitc,trumpc, throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
-    if pos == 2:
+    elif pos == 2:
         choice = move_second(p,cur_max,valid_cards,winner,suitc,trumpc, throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
-    if pos == 3:
+    elif pos == 3:
         choice = move_third(p,cur_max, valid_cards,winner,suitc, trumpc, throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
-    if pos == 4:
+    elif pos == 4:
         choice = move_fourth(p,cur_max,valid_cards,winner, suitc,trumpc, throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
 
     #print 'chosen card : ' +str( choice)
     return choice
+
+
+# ----- ORDERED PLAYING METHODS -----
+# If the AI is going first
 def move_first(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
     #choice = choose_random(valid_cards)
     max_val = -1
@@ -90,17 +83,26 @@ def move_first(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_
         choice = min(valid_cards)
     return choice
 
+# If the AI is going second
 def move_second(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
     #choice = choose_random
     choice = move_not_last(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
     return choice
+
+# If the AI is going third
 def move_third(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
     #choice = choose_random(valid_cards)
     choice = move_not_last(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
     return choice
+
+# If the AI is going fourth
 def move_fourth(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
     choice = move_last(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
     return choice
+
+
+# ----- POSITION-BASED PLAYING METHODS -----
+# If the AI isn't going last
 def move_not_last(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
     #find smallest card that wins, if it exists
     winnable = min_winnable(cur_max, suitc, trumpc)
@@ -130,6 +132,8 @@ def move_not_last(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,b
         else:
             #print 'give to partner : ' + str(losable)
             return losable
+        
+# If the AI is going last
 def move_last(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
     #find smallest card that wins, if it exists
     winnable = min_winnable(cur_max, suitc, trumpc)
@@ -154,20 +158,52 @@ def move_last(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_d
             #print 'give to partner : ' + str(losable)
             choice = losable
     return choice
+
+
+# ----- HELPER METHODS -----
+# The current highest card played this round
+def current_max_card(cards_this_round):
+    non_null_cards = [card for card in cards_this_round.values() if card is not None]
+    if len(non_null_cards)>0:
+        return max(non_null_cards)
+    else:
+        return None
+    
+# Check which player is currently winning
+def currently_winning_player(cur_max, cards_this_round):
+
+    for i in range(4):
+        if cards_this_round[i] is not None:
+            if cards_this_round[i]==cur_max:
+                return i
+    else:
+        return None
+    
+# Determine the AI's position in the turn order
 def determine_position(p,cards_this_round):
     position = 4 - sum([cards_this_round[i] is None for i in range(4)])+1
     #print position
     return position
+
+# Returns the HIGHEST card in the AI's hand of the lead suit
 def max_lead_suit(valid_cards):
     return max([card for card in valid_cards if card.suit==card.lead ])
+
+# Returns the LOWEST card in the AI's hand of the lead suit
 def min_lead_suit(valid_cards):
     return min([card for card in valid_cards if card.suit==card.lead ])
+
+# Returns the smallest-value valid card in the AI's hand of the lead suit that
+# is better than other_card 
 def min_lead_suit_gt_card(valid_cards,other_card):
     winning_cards = [card for card in valid_cards if card.suit==card.lead and card > other_card ]
     if len(winning_cards)>0:
         return min(winning_cards)
     else:
         return None
+
+# Finds the smallest card the AI could throw away. First looks in suits that 
+# match the lead suit, then from the throwaway suits, and lastly Trump.
 def min_throwable(suitc,throwc,trumpc):
     if len(suitc)>0:
         return min(suitc)
@@ -175,6 +211,13 @@ def min_throwable(suitc,throwc,trumpc):
         return min(throwc)
     else:
         return min(trumpc)
+##
+##
+##   
+# ???????????????????????????????????????????????????????????????????????????
+##
+##
+##
 def min_winnable(max_card,suitc,trumpc):
     if len(suitc)>0:
         return min(suitc)
@@ -182,14 +225,26 @@ def min_winnable(max_card,suitc,trumpc):
             return min(trumpc)
     else:
         return None
+    
+# Checks whether any card of a specific suit has been played
 def suit_broken(cards_played,suit):
     for card in Deck().cards:
         if card.suit==suit:
             if cards_played[str(card)] is not None:
                 return True
     return False
+
+# Pick a random card from the valid cards
 def choose_random(valid_cards):
     return valid_cards[rnd.randint(0,len(valid_cards)-1)]
+
+##
+##
+##   
+# ???????????????????????????????????????????????????????????????????????????
+##
+##
+##
 def determine_safe(cards_played,card_considered,partner,suit_trumped_by):
     higher_cards = card_considered.get_higher_cards()
     trumpers = suit_trumped_by[card_considered.suit]

@@ -59,33 +59,50 @@ class Hand:
             suit_cards.sort(reverse=True)
             sorted_list = sorted_list + suit_cards
         return Card.printList(sorted_list)
+    
     #------ COUNTING METHODS -----
+    # Count number of cards in each suit
     def suit_count(self):
         suit_ct = {i: 0 for i in range(4)}
         for c in self.cards:
             suit_ct[c.suit] +=1
         return suit_ct
+    
+    # Count number of aces in each suit
     def ace_by_suit(self):
-        ace_ct = {i: 0 for i in range(4)}
-        for card in self.cards:
-            if card.value==14:
-                ace_ct[card.suit] +=1
-        return ace_ct
+        return self.card_ct(14);
+        #ace_ct = {i: 0 for i in range(4)}
+        #for card in self.cards:
+        #    if card.value==14:
+        #        ace_ct[card.suit] +=1
+        #return ace_ct
+    
+    # Count number of kings in each suit
     def king_by_suit(self):
-        king_ct = {i: 0 for i in range(4)}
-        for card in self.cards:
-            if card.value==13:
-                king_ct[card.suit] +=1
-        return king_ct
+        return self.card_ct(13);
+        #king_ct = {i: 0 for i in range(4)}
+        #for card in self.cards:
+        #    if card.value==13:
+        #        king_ct[card.suit] +=1
+        #return king_ct
+    
+    # Count number of a specific card in each suit
     def card_ct(self,card_val):
         val_ct = {i: 0 for i in range(4)}
         for card in self.cards:
             if card.value==card_val:
                 val_ct[card.suit] +=1
         return val_ct
+    
+    # Count number of Trump cards
     def trump_ct(self):
         return sum( card.trump==card.suit for card in self.cards)
+    
+    #------ SUIT-BASED METHODS -----
+    # Get all cards of a given suit
     def get_suit(self,suit):
         return [card for card in self.cards if card.suit==suit]
+    
+    # Get the largest cards from each suit
     def max_suit(self,suit):
         return max(self.get_suit(suit))
