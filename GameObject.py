@@ -38,7 +38,7 @@ class Game:
 
     # ----- METHODS -----
     # For verifying human input
-    def isInt(s):
+    def isInt(self, s):
         try:
             int(s)
             return True
@@ -92,7 +92,7 @@ class Game:
             return self.H[p].play( self.H[p].validToRealIndex(ind) )
         
     #To handle AI bets for player p
-    def aiBet(p, strategy=1):
+    def aiBet(self, p, strategy=1):
         if strategy==3: # Simple heuristic
             bet = rnd.randint(2,5)
             return bet
@@ -104,7 +104,7 @@ class Game:
             return bet
 
     # Find the winning player from a trick
-    def winner(cards):
+    def winner(self, cards):
         srtd = sorted(cards,reverse=True)
         return cards.index(srtd[0])
 
@@ -175,11 +175,11 @@ class Game:
                         suit_trumped_by[Card.lead].add(p)
 
             # Find the winning player from the cards played this round
-            self.T[t] = winner(h[t]);
+            self.T[t] = self.winner(self.h[t]);
             print 'Player ' + str(self.T[t] + 1) + ' won the trick.'
             bet_deficits[ self.T[t] ] -= 1;
 
-    def getFinalScores(bets,T):
+    def getFinalScores(self, bets, T):
         scores = [0,0,0,0];
         for p in range(4):
             tricks_p = sum(T[t] ==p for t in range(13))
@@ -192,4 +192,4 @@ class Game:
     def playGame(self):
         self.playRound()
         print(self.bets)
-        return(getFinalScores(self.bets, self.T))
+        return(self.getFinalScores(self.bets, self.T))
