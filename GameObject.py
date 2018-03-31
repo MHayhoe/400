@@ -107,7 +107,7 @@ class Game:
     #To handle AI bets for player p
     def aiBet(self, p, strategy=1):
         if strategy==3: # Simple heuristic
-            bet = rnd.randint(2,5)
+            bet = self.heuristicBet(p)
             return bet
         if strategy==2: # Myopic greedy
             bet = rnd.randint(2,5)
@@ -115,6 +115,10 @@ class Game:
         if strategy==1: # Random strategy
             bet = rnd.randint(2,5)
             return bet
+    #Betting Method 1
+    def heuristicBet(self, p):
+        bet = min(sum(self.H[p].ace_by_suit().values()) + sum(self.H[p].king_by_suit().values()) + round(self.H[p].trump_ct()/4), 13)
+        return bet
 
     # Find the winning player from a trick
     def winner(self, cards):
