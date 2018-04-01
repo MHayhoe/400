@@ -1,3 +1,6 @@
+\newif\ifdraft
+\draftfalse
+
 \documentclass[twoside,11pt]{article}
 
 %================================ PREAMBLE ==================================
@@ -12,7 +15,23 @@
 \usepackage{wrapfig}
 \usepackage{color}
 \usepackage{url}
+
 %\usepackage{algorithm,algorithmic}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\algtext*{EndWhile}% Remove "end while" text
+\algtext*{EndFor}
+\algtext*{EndIf}% Remove "end if" text
+\algnewcommand\algorithmicinput{\textbf{Input:}}
+\algnewcommand\INPUT{\item[\algorithmicinput]}
+\algnewcommand\algorithmicoutput{\textbf{Output:}}
+\algnewcommand\OUTPUT{\item[\algorithmicoutput]}
+
+%comment colors
+\newcommand{\he}[1]{{\ifdraft\color{blue}[Hadi: {#1}]\fi}}
+\newcommand{\mh}[1]{{\ifdraft\color{red}[Mikhail: {#1}]\fi}}
+\newcommand{\hk}[1]{{\ifdraft\color{magenta}[Harshat: {#1}]\fi}}
+\newcommand{\mf}[1]{{\ifdraft\color{green}[Mohammad: {#1}]\fi}}
 
 %---------- Spacing ----------
 \setlength{\parindent}{0pt}
