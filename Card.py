@@ -100,7 +100,9 @@ class Card:
             else: # I'm trump, they're not
                 return True;
         elif self.suit == Card.lead: # I'm the lead suit
-            if other.suit == Card.lead: # We're both the lead suit
+            if other.suit == Card.trump: # They're trump, I'm not
+                return False;
+            elif other.suit == Card.lead: # We're both the lead suit
                 return self.value > other.value;
             else: # I'm the lead suit, they're not
                 return True;
@@ -118,7 +120,9 @@ class Card:
             else: # I'm trump, they're not
                 return True;
         elif self.suit == Card.lead: # I'm the lead suit
-            if other.suit == Card.lead: # We're both the lead suit
+            if other.suit == Card.trump: # They're trump, I'm not
+                return False;
+            elif other.suit == Card.lead: # We're both the lead suit
                 return self.value >= other.value;
             else: # I'm the lead suit, they're not
                 return True;
