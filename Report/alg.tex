@@ -4,11 +4,39 @@
 
 
 
+\subsection{Heuristic AI Algorithms}
+In this section, we pseudocode algorithms for the heuristic AI. We omit helper methods when they can be easily expressed by variable names. We also define some terms that are usd in the heuristic AI, either explicitly or implicitly. 
 
-\begin{algorithm}[tb]
+%\definition[Valid Cards]{\label{term:validcards} The set of valid cards of a hand are all the cards of the current lead suit if there are any of the lead suit; otherwise, all cards are valid. }
+
+\begin{algorithm}[htb]
 	\caption{Determining whether a card is safe}
 	\label{alg:}
 	\begin{algorithmic}
+	\State Inputs: 
+	\end{algorithmic}
+\end{algorithm} 
 
+\he{this algorithm should be improved to even more take into account the current deficits. For example, if I have a bet deficit of 0 and my partner has a bet deficit of 5, even if my partner isn't winning, I might want to throw away my maximum valid card in order to get out of his way. I might want to do this also in the case where my partner is close to 41 and I am far, but will remain positive even if I lose my bet. Thus the algorithm in its current state is 'myopic' in the sense of failing to think about the current game status.} 
+
+Algorithm \ref{alg:movelast} chooses what to move when the player is moving last. 
+
+\begin{algorithm}[htb]
+	\caption{Moving when last player to move}
+	\label{alg:movelast}
+	\begin{algorithmic}
+		\State Input: $S_t$; State
+		\State Output: $C_t$, Card to play
+		\State $MWVC = FindMinimumWinningValidCard(S_t)$
+		\State $MVC = FindMinimumValidCard(S_t)$		
+		\If{$MWVC == None$ 			\he{here we could also check the current status of the game in order to be less myopic}}
+			\State \Return $MVC$
+		\Else
+				\If{$State.PartnerWinning=False$}
+					\State \Return{MWVC}
+				\Else
+					\State \Return{MVC}
+				\EndIf
+		\EndIf
 	\end{algorithmic}
 \end{algorithm} 
