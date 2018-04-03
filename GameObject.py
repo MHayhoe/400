@@ -15,6 +15,7 @@ from heuristicAI import heuristicChoice
 
 class Game:
     def __init__(self, num_rounds,strategy_vector, n=13):
+        # type: (object, object, object) -> object
         self.num_rounds = num_rounds;
         self.player_strategy=strategy_vector;
         self.n = n;

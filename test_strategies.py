@@ -1,7 +1,7 @@
 from GameObject import Game
 import numpy as np
 import datetime as dt
-
+import copy
 num_tests = 1000
 
 # Let's test heuristic vs random
@@ -16,15 +16,18 @@ ties = 0.0
 strategies = [2,2,2,2]
 
 # For saving the game state after each game
-Hands = [[] for i in range(num_tests)];
-History = [[] for i in range(num_tests)];
-Winners = [[] for i in range(num_tests)];
-Bets = [[] for i in range(num_tests)];
-Scores = [[] for i in range(num_tests)];
-Tricks = [[] for i in range(num_tests)];
+Hands = []
+History = []
+Bets = []
+Scores = []
+Tricks = []
+#games = [Game(13, strategies) for i in range(num_tests)]
 for i in range(num_tests):
+    print i
     game = Game(13, strategies)
+    #game = games[i]
     scores = game.playGame()
+    #print(scores)
     rando_score = scores[1]+scores[3]
     heuristic_score = scores[0]+scores[2]
     
@@ -41,13 +44,24 @@ for i in range(num_tests):
     for p in range(4):
         tricks[p] = sum(game.T[t] == p for t in range(13))
 
-    Hands[i] = game.initialHands;
-    History[i] = game.h;
-    Winners[i] = game.T;
-    Bets[i] = game.bets;
-    Scores[i] = scores;
-    Tricks[i] = tricks;
+    #print Hands[i]
+    #print game.initialHands
+    Hands.append(game.initialHands)
+    #print Hands[i]
+    #print Hands
+    History.append(game.h)
+    Bets.append(game.bets)
+    #Scores[i] = scores;
+    Scores.append(scores)
+    #print (Scores[i])
+    Tricks.append(tricks)
+    #print Hands[i]
+    #print Bets[i]
+    #print Hands
 
+
+print Hands
+#print Bets
 tempTime = dt.datetime.now().time();
 #timeString = 'Data/Heuristic_v_Greedy' + str(dt.datetime.now().date()) + '-' + str(tempTime.hour) + '-' + str(tempTime.minute) + '-' + str(tempTime.second);
 #timeString = 'Data/Greedy_v_Greedy' + str(dt.datetime.now().date()) + '-' + str(tempTime.hour) + '-' + str(tempTime.minute) + '-' + str(tempTime.second);
@@ -55,7 +69,7 @@ timeString = 'Data/Greedy_v_Greedy' #+ str(dt.datetime.now().date()) + '-' + str
 
 np.save(timeString + '_Hands', Hands)
 np.save(timeString + '_History', History)
-np.save(timeString + '_Winners', Winners)
+#np.save(timeString + '_Winners', Winners)
 np.save(timeString + '_Bets', Bets)
 np.save(timeString + '_numTests', num_tests)
 np.save(timeString + '_Scores', Scores)
