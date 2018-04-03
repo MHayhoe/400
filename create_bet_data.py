@@ -34,7 +34,9 @@ for batch in range(num_batches):
                 vals[c] = card.value
                 suits[c] = card.suit
             #add x and y data to array
+            #x_interleave = [val for pair in zip(vals,suits) for val in pair]
             x_obs = vals + suits
+            #x_obs = x_interleave
             y_obs = tricks
             dataarray[4*t+p,0:x_size] = x_obs
             dataarray[4*t+p, x_size:x_size+y_size] = y_obs
