@@ -5,20 +5,36 @@ import numpy as np
 import pandas as pd
 import datetime as dt
 import copy
-num_batches = 1000
-batch_size = 1000
+num_batches = 100
+batch_size = 100
 Bets = []
 Tricks = []
 strategies = [2,2,2,2]
 nameString = './Data/greedy_v_greedy_bet_data.csv'
 x_size = 26
+#set data organization
+organization = 'binary'
+organization = 'sorted'
+organization = 'interleave'
+#organization = 'interleave sorted'
+
+if organization =='binary':
+    nameString = './Data/greedy_v_greedy_bet_data_binary.csv'
+    x_size = 52
+elif organization == 'interleave':
+    nameString = './Data/greedy_v_greedy_bet_data_interleave.csv'
+elif organization == 'sorted':
+    nameString = './Data/greedy_v_greedy_bet_data_sorted.csv'
+elif organization =='interleave_sorted':
+    nameString ='./Data/greedy_v_greedy_bet_data_interleave_sorted.csv'
+
 y_size = 1
 
 for batch in range(num_batches):
     dataarray = np.zeros((4*batch_size, x_size+y_size))
     for t in range(batch_size):
         #print progress
-        if t%batch_size/10==1:
+        if t%(batch_size/10)==1:
             print '{}0 percent of batch complete: batch size is {} and we are on batch {} of {}'.format(t,batch_size, batch, num_batches)
         #generate a new game
         game = Game(13, strategies)
@@ -29,14 +45,36 @@ for batch in range(num_batches):
             hand = game.initialHands[p]
             vals = [0 for i in range(13)]
             suits = [0 for i in range(13)]
+            x_binary = [0 for i in range(52)]
+            vals_sorted = [0 for i in range(13)]
+            suits_sorted = [0 for i in range(13)]
             for c in range(13):
                 card = hand.cards[c]
-                vals[c] = card.value
-                suits[c] = card.suit
+                value = card.value
+                suit = card.suit
+                vals[c] = value
+                suits[c] =suit
+                x_binary[value+4*suit] = 1
+            hand.sort()
+            for c in range(13):
+                card = hand.cards[c]
+                value = card.value
+                suit = card.suit
+                vals_sorted[c] = value
+                suits_sorted[c] = suit
             #add x and y data to array
-            #x_interleave = [val for pair in zip(vals,suits) for val in pair]
             x_obs = vals + suits
-            #x_obs = x_interleave
+            x_sorted = vals_sorted + suits_sorted
+            x_interleave = [val for pair in zip(vals,suits) for val in pair]
+            x_interleave_sorted = [val for pair in zip(vals_sorted,suits_sorted) for val in pair]
+            if organization =='interleave sorted':
+                x_obs = x_interleave_sorted
+            elif organization == 'interleave':
+                x_obs = x_interleave
+            elif organization== 'binary':
+                x_obs = x_binary
+            elif organization=='sorted':
+                x_obs = x_sorted
             y_obs = tricks
             dataarray[4*t+p,0:x_size] = x_obs
             dataarray[4*t+p, x_size:x_size+y_size] = y_obs
