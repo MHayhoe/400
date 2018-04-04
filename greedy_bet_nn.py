@@ -6,7 +6,9 @@ import keras
 from keras import backend as K
 import numpy as np
 
-nameString = './Data/Greedy_v_Greedy_bet_sorted'
+typeString = 'sorted'
+nameString = './Data/Greedy_v_Greedy_bet_'+typeString
+modelString = 'Greedy_v_Greedy_bet_'+ typeString
 x_train = np.load(nameString + '_x_train.npy')
 y_train = np.load(nameString + '_y_train.npy' )
 x_test = np.load(nameString + '_x_test.npy')
@@ -44,7 +46,7 @@ model.compile(loss=get_loss_bet(),
               optimizer=sgd,
               metrics=['mean_absolute_error',get_loss_bet()])
 batchsize = 128
-epoches = 100
+epoches = 1
 history = model.fit(x_train, y_train,
                     batch_size=batchsize,
                     epochs = epoches,
@@ -58,3 +60,5 @@ mae = [0 for i in range(len(pred))]
 
 for i in range(len(pred)):
     mae[i] = np.abs(np.round(pred[i]) - y_test[i])
+
+model.save('./Models/'+modelString+'.h5')
