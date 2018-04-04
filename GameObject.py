@@ -22,11 +22,14 @@ import numpy as np
 
 class Game:
     #hack - fix later! importing betmodel in game object
-    def __init__(self, num_rounds,strategy_vector, n=13):
+    def __init__(self, num_rounds,strategy_vector, model_vector, n=13):
         # type: (object, object, object) -> object
         self.num_rounds = num_rounds;
         self.player_strategy=strategy_vector;
+        self.player_models =model_vector;
         self.n = n;
+        self.aiplayers = [AIPlayer(self.player_strategy[i], self.player_models[i], 'sorted') for i in range(4)]
+
         # There's a human player, so we want to print
         if 0 in strategy_vector:
             self.verbose = True;
@@ -41,8 +44,6 @@ class Game:
     # 1:    random - play a valid card at random
     # 2:    highest - play the highest valid card
     #player_strategy = [0, 2, 1, 1];
-    player_strategy = [3,2,3,2];
-    aiplayers = [AIPlayer(3, 'model', 'sorted'), AIPlayer(2, 'model', 'sorted'), AIPlayer(3, 'model', 'sorted'),AIPlayer(2, 'model', 'sorted')]
     # Make a new deck, and shuffle it.
     deck = Deck();
     deck.shuffle();
@@ -116,6 +117,7 @@ class Game:
         
     #To handle AI bets for player p
     def aiBet(self, p, strategy=1):
+        print 'ai ' + str(p) +  ' is goign to bet ' +  str(self.aiplayers[p].get_bet(self.H[p]))
         return self.aiplayers[p].get_bet(self.H[p])
         # if strategy==3: # Simple heuristic
         #     bet = self.heuristicBet(p)

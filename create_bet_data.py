@@ -9,18 +9,45 @@ num_batches = 24
 batch_size = 1000
 Bets = []
 Tricks = []
-#strategies = [2,2,2,2]
-strategies = [3,3,3,3]
-#nameString = './Data/greedy_v_greedy_bet_data.csv'
-nameString = './Data/heuristic_v_heuristic.csv'
-gameTypeString = 'heuristic_v_heuristic'
-x_size = 26
+#strategy_var = 'greedy_v_heuristic'
+#strategy_var = 'greedy_v_greedy'
+strategy_var = 'heuristic_v_heuristic'
+#strategy_var = 'heuristic_v_greedy'
+
 #organization ='standard'
 #set data organization
 #organization = 'binary'
 organization = 'sorted'
 #organization = 'interleave'
 #organization = 'interleave_sorted'
+
+
+if strategy_var=='greedy_v_greedy':
+    nameString = './Data/greedy_v_greedy.csv'
+    gameTypeString = 'greedy_v_greedy'
+    strategies = [2,2,2,2]
+    model_vector = ['heuristic','heuristic','heuristic','heuristic']
+
+elif strategy_var =='greedy_v_heuristic':
+    nameString = './Data/greedy_v_heuristic.csv'
+    gameTypeString = 'greedy_v_heuristic'
+    strategies  = [2,3,2,3]
+    model_vector = ['model','model','model','model']
+
+elif strategy_var=='heuristic_v_heuristic':
+    nameString = './Data/heuristic_v_heuristic.csv'
+    gameTypeString = 'heuristic_v_heuristic'
+    strategies = [3,3,3,3]
+    model_vector = ['model','model','model','model']
+
+elif strategy_var=='heuristic_v_greedy':
+    nameString = './Data/heuristic_v_greedy.csv'
+    gameTypeString = 'heuristic_v_greedy'
+    strategies = [3,2,3,2]
+    model_vector = ['model','model','model','model']
+
+
+x_size = 26
 
 if organization =='binary':
     nameString = './Data/'+gameTypeString+ '_bet_data_' + organization+'.csv'
@@ -41,7 +68,7 @@ for batch in range(num_batches):
         if t%(batch_size/10)==1:
             print '{}0 percent of batch complete: batch size is {} and we are on batch {} of {}'.format(t,batch_size, batch, num_batches)
         #generate a new game
-        game = Game(13, strategies)
+        game = Game(13, strategies, model_vector)
         scores = game.playGame()
         for p in range(4):
             #scount tricks taken and get suits and card vals
