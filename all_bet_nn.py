@@ -7,8 +7,18 @@ from keras import backend as K
 import numpy as np
 
 typeString = 'sorted'
-nameString = './Data/Heuristic_v_Heuristic_bet_data_'+typeString
-modelString = 'Heuristic_v_Heuristic_bet_data_'+ typeString
+#typeString = 'binary'
+#typeString = 'standard'
+#typeString = 'interleave'
+#typeString = 'interleave_sorted'
+
+strategyString = 'Heuristic_v_Greedy'
+#strategyString = 'Heuristic_v_Heuristic'
+#strategyString = 'Greedy_v_Greedy'
+#strategyString = 'Greedy_v_Heuristic'
+modelString = strategyString + '_bet_data_' + typeString
+nameString = './Data/' + strategyString + '_bet_data_' + typeString
+
 x_train = np.load(nameString + '_x_train.npy')
 y_train = np.load(nameString + '_y_train.npy' )
 x_test = np.load(nameString + '_x_test.npy')
