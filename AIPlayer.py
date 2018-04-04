@@ -28,15 +28,21 @@ def get_loss_bet():
 
 class AIPlayer:
     # Constructor
-    def __init__(self, strategy,bettype, datatype):
+    def __init__(self, strategy,bettype, datatype, model_object=None):
         self.strategy = strategy;
         self.bettype = bettype
         self.datatype = datatype;
         if self.bettype == 'model': #or self.bettype=='heuristic':
             if strategy==2:
-                self.betmodel = keras.models.load_model('./Models/Greedy_v_Greedy_bet_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
+                if model_object is not None:
+                    self.betmodel = model_object
+                else:
+                    self.betmodel = keras.models.load_model('./Models/Greedy_v_Greedy_bet_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
             elif strategy==3:
-                self.betmodel = keras.models.load_model('./Models/Heuristic_v_Heuristic_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
+                if model_object is not None:
+                    self.betmodel = model_object
+                else:
+                    self.betmodel = keras.models.load_model('./Models/Heuristic_v_Heuristic_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
 
         elif self.bettype=='heuristic':
             pass

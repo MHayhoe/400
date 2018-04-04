@@ -21,12 +21,31 @@ organization = 'sorted'
 #organization = 'interleave'
 #organization = 'interleave_sorted'
 
+import keras
+from keras import backend as K
+import numpy as np
+import heuristicAI as hai
 
+def loss_bet(y_true, y_pred):
+    return K.mean(y_true + K.sign(y_pred - y_true) * y_pred)
+
+# Returns our custom loss function
+def get_loss_bet():
+    # Our custom loss function: if we make our bet (y_true >= y_pred), the loss
+    # is the amount we could have gotten if we'd bet y_true, i.e., it's
+    # y_true - y_pred. If we didn't make our bet, then our loss is what we
+    # could have gotten minus what we lost, i.e., y_true + y_pred
+    # (since -1*(-bet) = bet)
+    return loss_bet
+
+betting_model_objects= [None,None,None,None]
 if strategy_var=='greedy_v_greedy':
     nameString = './Data/greedy_v_greedy.csv'
     gameTypeString = 'greedy_v_greedy'
     strategies = [2,2,2,2]
     model_vector = ['heuristic','heuristic','heuristic','heuristic']
+    betting_models = [keras.models.load_model('./Models/Greedy_v_Greedy_bet_' + datatype + '.h5', custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet}) for i in range(4)]
+
 
 elif strategy_var =='greedy_v_heuristic':
     nameString = './Data/greedy_v_heuristic.csv'
@@ -44,7 +63,7 @@ elif strategy_var=='heuristic_v_greedy':
     nameString = './Data/heuristic_v_greedy.csv'
     gameTypeString = 'heuristic_v_greedy'
     strategies = [3,2,3,2]
-    model_vector = ['model','model','model','model']
+    model_vector = ['heuristic','heuristic','heuristic','heuristic']
 
 
 x_size = 26
@@ -61,6 +80,8 @@ elif organization =='interleave_sorted':
 
 y_size = 1
 
+models = []
+
 for batch in range(num_batches):
     dataarray = np.zeros((4*batch_size, x_size+y_size)).astype(int)
     for t in range(batch_size):
@@ -68,7 +89,7 @@ for batch in range(num_batches):
         if t%(batch_size/10)==1:
             print '{}0 percent of batch complete: batch size is {} and we are on batch {} of {}'.format(t,batch_size, batch, num_batches)
         #generate a new game
-        game = Game(13, strategies, model_vector)
+        game = Game(13, strategies, model_vector, betting_model_objects)
         scores = game.playGame()
         for p in range(4):
             #scount tricks taken and get suits and card vals

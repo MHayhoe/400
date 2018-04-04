@@ -22,13 +22,14 @@ import numpy as np
 
 class Game:
     #hack - fix later! importing betmodel in game object
-    def __init__(self, num_rounds,strategy_vector, model_vector, n=13):
+    def __init__(self, num_rounds,strategy_vector, model_vector, n=13, betting_model_objects = [None, None, None, None]):
         # type: (object, object, object) -> object
         self.num_rounds = num_rounds;
         self.player_strategy=strategy_vector;
         self.player_models =model_vector;
         self.n = n;
-        self.aiplayers = [AIPlayer(self.player_strategy[i], self.player_models[i], 'sorted') for i in range(4)]
+        self.betting_models = betting_model_objects
+        self.aiplayers = [AIPlayer(self.player_strategy[i], self.player_models[i], 'sorted',self.betting_models[i]) for i in range(4)]
 
         # There's a human player, so we want to print
         if 0 in strategy_vector:
