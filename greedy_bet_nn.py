@@ -20,6 +20,9 @@ y_test = np.load(nameString + '_y_test.npy')
 #y_train = to_categorical(y_train)
 #y_test = to_categorical(y_test)
 
+def loss_bet(y_true, y_pred):
+    return K.mean(y_true + K.sign(y_pred - y_true) * y_pred)
+
 # Returns our custom loss function
 def get_loss_bet():
     # Our custom loss function: if we make our bet (y_true >= y_pred), the loss
@@ -27,8 +30,6 @@ def get_loss_bet():
     # y_true - y_pred. If we didn't make our bet, then our loss is what we
     # could have gotten minus what we lost, i.e., y_true + y_pred
     # (since -1*(-bet) = bet)
-    def loss_bet(y_true, y_pred):
-        return K.mean( y_true + K.sign(y_pred - y_true)*y_pred )
     return loss_bet
 
 model = Sequential()
@@ -46,7 +47,7 @@ model.compile(loss=get_loss_bet(),
               optimizer=sgd,
               metrics=['mean_absolute_error',get_loss_bet()])
 batchsize = 128
-epoches = 1
+epoches = 100
 history = model.fit(x_train, y_train,
                     batch_size=batchsize,
                     epochs = epoches,

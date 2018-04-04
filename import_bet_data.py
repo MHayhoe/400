@@ -11,7 +11,7 @@ import numpy as np
 xdata = []
 ydata = []
 
-typeString = 'interleave'
+typeString = 'sorted'
 
 with open('Data/greedy_v_greedy_bet_data_' + typeString + '.csv','r') as file:
     rdr = csv.reader(file, delimiter =',')

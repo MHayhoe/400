@@ -257,3 +257,6 @@ def determine_safe(cards_played,card_considered,partner,suit_trumped_by):
         if len(higher_of_suit)>0:
             return False
     return True
+def heuristicBet(hand):
+    bet = min(sum(hand.ace_by_suit().values()) + sum(hand.king_by_suit().values()) + round(hand.trump_ct()/4), 13)
+    return bet

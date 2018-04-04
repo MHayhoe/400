@@ -5,6 +5,7 @@ Created on Thu Mar 15 14:15:52 2018
 @author: Mikhail
 """
 from Card import Card
+import numpy as np
 class Hand:
     # cards - list of Card objects, representing what's in the hand.
     
@@ -106,3 +107,62 @@ class Hand:
     # Get the largest cards from each suit
     def max_suit(self,suit):
         return max(self.get_suit(suit))
+    #------ DATA CONVERSION -----
+    def get_cards_as_binary(self):
+        x_binary = np.zeros(52).astype(int)
+        for c in range(len(self.cards)):
+            card = self.cards[c]
+            value = card.value
+            suit = card.suit
+            x_binary[value + 4 * suit] = 1
+        return x_binary
+
+    def get_cards_as_val_suit_sorted(self):
+        vals_sorted = np.zeros(13).astype(int)
+        suits_sorted = np.zeros(13).astype(int)
+        self.sort()
+        for c in range(len(self.cards)):
+            card = self.cards[c]
+            value = card.value
+            suit = card.suit
+            vals_sorted[c] = value
+            suits_sorted[c] = suit
+        x_obs = np.concatenate([vals_sorted, suits_sorted])
+        return x_obs
+    def get_cards_as_val_suit(self):
+        vals = np.zeros(13).astype(int)
+        suits = np.zeros(13).astype(int)
+        for c in range(len(self.cards)):
+            card = self.cards[c]
+            value = card.value
+            suit = card.suit
+            vals_sorted[c] = value
+            suits_sorted[c] = suit
+        x_obs = np.concatenate([vals, suits])
+        return x_obs
+    def get_cards_as_interleave(self):
+        vals = np.zeros(13).astype(int)
+        suits = np.zeros(13).astype(int)
+        for c in range(len(self.cards)):
+            card = self.cards[c]
+            value = card.value
+            suit = card.suit
+            vals_sorted[c] = value
+            suits_sorted[c] = suit
+        x_interleave = np.array([val for pair in zip(vals, suits) for val in pair]).astype(int)
+        return x_interleave
+
+    def get_cards_as_interleave_sorted(self):
+        vals_sorted = np.zeros(13).astype(int)
+        suits_sorted = np.zeros(13).astype(int)
+        self.sort()
+        for c in range(len(self.cards)):
+            card = self.cards[c]
+            value = card.value
+            suit = card.suit
+            vals_sorted[c] = value
+            suits_sorted[c] = suit
+        x_interleave_sorted = np.array([val for pair in zip(vals_sorted, suits_sorted) for val in pair]).astype(int)
+        return x_interleave_sorted
+
+

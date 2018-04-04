@@ -2,7 +2,7 @@ from GameObject import Game
 import numpy as np
 import datetime as dt
 import copy
-num_tests = 1000000
+num_tests = 1000
 
 # Let's test heuristic vs random
 total_score_rando = 0
@@ -69,15 +69,15 @@ tempTime = dt.datetime.now().time();
 #timeString = 'Data/Greedy_v_Greedy' + str(dt.datetime.now().date()) + '-' + str(tempTime.hour) + '-' + str(tempTime.minute) + '-' + str(tempTime.second);
 timeString = 'Data/Greedy_v_Greedy' #+ str(dt.datetime.now().date()) + '-' + str(tempTime.hour) + '-' + str(tempTime.minute) + '-' + str(tempTime.second);
 
-np.save(timeString + '_Hands', Hands)
-np.save(timeString + '_History', History)
-#np.save(timeString + '_Winners', Winners)
-np.save(timeString + '_Bets', Bets)
-np.save(timeString + '_numTests', num_tests)
-np.save(timeString + '_Scores', Scores)
-np.save(timeString + '_Tricks', Tricks)
-
-#print 'Heuristic won ' + str(wins_heuristic/num_tests*100) + '% of games, tied ' + str(ties/num_tests*100) + '% of games.'
+#np.save(timeString + '_Hands', Hands)
+# np.save(timeString + '_History', History)
+# #np.save(timeString + '_Winners', Winners)
+# np.save(timeString + '_Bets', Bets)
+# np.save(timeString + '_numTests', num_tests)
+# np.save(timeString + '_Scores', Scores)
+# np.save(timeString + '_Tricks', Tricks)
+#
+print 'Heuristic won ' + str(wins_heuristic/num_tests*100) + '% of games, tied ' + str(ties/num_tests*100) + '% of games.'
 
 
 # it is probably better to just convert to data here...

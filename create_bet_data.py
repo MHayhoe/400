@@ -12,12 +12,12 @@ Tricks = []
 strategies = [2,2,2,2]
 nameString = './Data/greedy_v_greedy_bet_data.csv'
 x_size = 26
-organization ='standard'
+#organization ='standard'
 #set data organization
 #organization = 'binary'
 #organization = 'sorted'
 #organization = 'interleave'
-#organization = 'interleave sorted'
+organization = 'interleave_sorted'
 
 if organization =='binary':
     nameString = './Data/greedy_v_greedy_bet_data_binary.csv'
