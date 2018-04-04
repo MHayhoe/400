@@ -4,10 +4,9 @@ from keras.layers import Dense, Activation, Dropout
 from keras.utils import to_categorical
 import keras
 from keras import backend as K
-import tensorflow as tf
 import numpy as np
 
-nameString = './Data/Greedy_v_Greedy_bet'
+nameString = './Data/Greedy_v_Greedy_bet_sorted'
 x_train = np.load(nameString + '_x_train.npy')
 y_train = np.load(nameString + '_y_train.npy' )
 x_test = np.load(nameString + '_x_test.npy')
@@ -25,7 +24,7 @@ def get_loss_bet():
     # is the amount we could have gotten if we'd bet y_true, i.e., it's
     # y_true - y_pred. If we didn't make our bet, then our loss is what we
     # could have gotten minus what we lost, i.e., y_true + y_pred
-    #(since -1*(-bet) = bet)
+    # (since -1*(-bet) = bet)
     def loss_bet(y_true, y_pred):
         return K.mean( y_true + K.sign(y_pred - y_true)*y_pred )
     return loss_bet
@@ -43,9 +42,9 @@ opt = keras.optimizers.RMSprop(lr=.01,clipnorm=10.)
 
 model.compile(loss=get_loss_bet(),
               optimizer=sgd,
-              metrics=[get_loss_bet()])
+              metrics=['mean_absolute_error',get_loss_bet()])
 batchsize = 128
-epoches = 1
+epoches = 100
 history = model.fit(x_train, y_train,
                     batch_size=batchsize,
                     epochs = epoches,
@@ -54,3 +53,8 @@ history = model.fit(x_train, y_train,
 score = model.evaluate(x_test, y_test, batch_size = batchsize)
 
 pred = model.predict(x_test)
+
+mae = [0 for i in range(len(pred))]
+
+for i in range(len(pred)):
+    mae[i] = np.abs(np.round(pred[i]) - y_test[i])
