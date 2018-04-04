@@ -11,9 +11,17 @@ from copy import deepcopy
 from Hand import Hand
 from Deck import Deck
 from Card import Card
+from AIPlayer import AIPlayer
 from heuristicAI import heuristicChoice
+from keras.models import Sequential
+from keras.layers import Dense, Activation, Dropout
+from keras.utils import to_categorical
+import keras
+from keras import backend as K
+import numpy as np
 
 class Game:
+    #hack - fix later! importing betmodel in game object
     def __init__(self, num_rounds,strategy_vector, n=13):
         # type: (object, object, object) -> object
         self.num_rounds = num_rounds;
@@ -33,7 +41,8 @@ class Game:
     # 1:    random - play a valid card at random
     # 2:    highest - play the highest valid card
     #player_strategy = [0, 2, 1, 1];
-    player_strategy = [3,2,2,2];
+    player_strategy = [3,2,3,2];
+    aiplayers = [AIPlayer(3, 'model', 'sorted'), AIPlayer(2, 'model', 'sorted'), AIPlayer(3, 'model', 'sorted'),AIPlayer(2, 'model', 'sorted')]
     # Make a new deck, and shuffle it.
     deck = Deck();
     deck.shuffle();
@@ -107,15 +116,17 @@ class Game:
         
     #To handle AI bets for player p
     def aiBet(self, p, strategy=1):
-        if strategy==3: # Simple heuristic
-            bet = self.heuristicBet(p)
-            return bet
-        if strategy==2: # Myopic greedy
-            bet = rnd.randint(2,5)
-            return bet
-        if strategy==1: # Random strategy
-            bet = rnd.randint(2,5)
-            return bet
+        return self.aiplayers[p].get_bet(self.H[p])
+        # if strategy==3: # Simple heuristic
+        #     bet = self.heuristicBet(p)
+        #     return bet
+        # if strategy==2: # Myopic greedy
+        #     #bet = rnd.randint(2,5)
+        #     bet = players[p].get_bet(H[p])
+        #     return bet
+        # if strategy==1: # Random strategy
+        #     bet = rnd.randint(2,5)
+        #     return bet
     #Betting Method 1
     def heuristicBet(self, p):
         bet = min(sum(self.H[p].ace_by_suit().values()) + sum(self.H[p].king_by_suit().values()) + round(self.H[p].trump_ct()/4), 13)
@@ -166,7 +177,7 @@ class Game:
         card_played_by = {card.__str__():None for card in Deck().cards}
         suit_trumped_by = {i:set() for i in range(4)}
         bet_deficits = list(self.bets)
-        
+        #print(self.bets)
         # Go through the rounds
         for t in range(0, self.num_rounds):
             # No lead suit yet
@@ -201,7 +212,8 @@ class Game:
             # Find the winning player from the cards played this round
             self.T[t] = self.winner(self.h[t]);
             self.printVerbose('Player ' + str(self.T[t] + 1) + ' won the trick.')
-            bet_deficits[ self.T[t] ] -= 1;
+            #print bet_deficits[self.T[t]];
+            bet_deficits[self.T[t]] -= 1;
 
     def getFinalScores(self, bets, T):
         scores = [0,0,0,0];

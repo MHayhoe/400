@@ -5,29 +5,32 @@ import numpy as np
 import pandas as pd
 import datetime as dt
 import copy
-num_batches = 25
+num_batches = 24
 batch_size = 1000
 Bets = []
 Tricks = []
-strategies = [2,2,2,2]
-nameString = './Data/greedy_v_greedy_bet_data.csv'
+#strategies = [2,2,2,2]
+strategies = [3,3,3,3]
+#nameString = './Data/greedy_v_greedy_bet_data.csv'
+nameString = './Data/heuristic_v_heuristic.csv'
+gameTypeString = 'heuristic_v_heuristic'
 x_size = 26
 #organization ='standard'
 #set data organization
 #organization = 'binary'
-#organization = 'sorted'
+organization = 'sorted'
 #organization = 'interleave'
-organization = 'interleave_sorted'
+#organization = 'interleave_sorted'
 
 if organization =='binary':
-    nameString = './Data/greedy_v_greedy_bet_data_binary.csv'
+    nameString = './Data/'+gameTypeString+ '_bet_data_' + organization+'.csv'
     x_size = 52
 elif organization == 'interleave':
-    nameString = './Data/greedy_v_greedy_bet_data_interleave.csv'
+    nameString = './Data/'+gameTypeString+ '_bet_data_' + organization+'.csv'
 elif organization == 'sorted':
-    nameString = './Data/greedy_v_greedy_bet_data_sorted.csv'
+    nameString = './Data/'+gameTypeString+ '_bet_data_' + organization+'.csv'
 elif organization =='interleave_sorted':
-    nameString ='./Data/greedy_v_greedy_bet_data_interleave_sorted.csv'
+    nameString ='./Data/'+gameTypeString+ '_bet_data_' + organization+'.csv'
 
 y_size = 1
 

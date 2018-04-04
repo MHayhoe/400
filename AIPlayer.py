@@ -32,9 +32,12 @@ class AIPlayer:
         self.strategy = strategy;
         self.bettype = bettype
         self.datatype = datatype;
-        if self.bettype == 'model':
-            self.betmodel = keras.models.load_model('./Models/Greedy_v_Greedy_bet_'+datatype+'.h5', custom_objects={'get_loss_bet':
-get_loss_bet, 'loss_bet':loss_bet})
+        if self.bettype == 'model': #or self.bettype=='heuristic':
+            if strategy==2:
+                self.betmodel = keras.models.load_model('./Models/Greedy_v_Greedy_bet_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
+            elif strategy==3:
+                self.betmodel = keras.models.load_model('./Models/Heuristic_v_Heuristic_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
+
         elif self.bettype=='heuristic':
             pass
         else:
@@ -53,7 +56,7 @@ get_loss_bet, 'loss_bet':loss_bet})
 
     # ----- Get Bet -----
     def get_bet(self, hand):
-        if self.bettype == 'model':
+        if self.bettype == 'model': #or self.bettype=='heuristic':
             #print(self.get_cards(hand))
             #print np.shape(self.get_cards(hand))
             model_bet = self.betmodel.predict(np.array([self.get_cards(hand)]))[0][0]
