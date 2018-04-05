@@ -9,7 +9,7 @@ from keras.layers import Dense
 import matplotlib.pyplot as plt
 
 # Number of rounds of play to run
-num_tests = 1000
+num_tests = 10000
 
 # Number of cards to give to each player, and number of tricks in each round
 n = 13;
@@ -30,7 +30,7 @@ ties = 0.0
 #  INITIALIZATION
 #--------------------------
 # Strategies that each player should use to play
-strategies = [2,2,2,2]
+strategies = [3,3,3,3]
 
 # For saving the game state after each game
 Hands = []
@@ -65,8 +65,8 @@ class batch_loss_history(keras.callbacks.Callback):
 
 ## Initialize the betting NN model
 bet_model = Sequential()
-bet_model.add(Dense(20, input_dim=26))
-bet_model.add(keras.layers.LeakyReLU(alpha=0.1))
+bet_model.add(Dense(20, input_dim=52))
+bet_model.add(keras.layers.LeakyReLU(alpha=0.3))
 #bet_model.add(Dense(5, activation='relu'))
 #bet_model.add(Dense(10, activation='relu'))
 bet_model.add(Dense(1, activation='relu'))
@@ -92,7 +92,7 @@ for t in range(1,num_tests+1):
     #if i % 10000 == 1:
     #print(t)
         
-    game = Game(n, strategies, ['model','model','model','model'], n, [bet_model for i in range(4)])
+    game = Game(n, strategies, ['model','heuristic','model','heuristic'], n, [bet_model for i in range(4)])
     scores = game.playGame()
     
     score_team1 = scores[0] + scores[2]
@@ -122,15 +122,15 @@ for t in range(1,num_tests+1):
     Tricks.append(tricks)
     
     # Save the hands as training data for the betting NN
-    for p in range(4):
+    for p in [0, 2]:
         init_hands[p].sort()
-        vals = [init_hands[p].cards[i].value for i in range(n)]
-        suits = [init_hands[p].cards[i].suit for i in range(n)]
-        x_train.append(vals + suits)
-#        x_binary = [0 for i in range(n*4)]
-#        for c in init_hands[p].cards:
-#            x_binary[c.suit*4 + c.value] = 1
-#        x_train.append(x_binary)
+#        vals = [init_hands[p].cards[i].value for i in range(n)]
+#        suits = [init_hands[p].cards[i].suit for i in range(n)]
+#        x_train.append(vals + suits)
+        x_binary = [0 for i in range(n*4)]
+        for c in init_hands[p].cards:
+            x_binary[c.suit*4 + c.value] = 1
+        x_train.append(x_binary)
         y_train.append(tricks)
     
     # Train the betting NN
