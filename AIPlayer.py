@@ -4,6 +4,7 @@ Created on Tue Mar 20 00:13 2018
 
 @author: Hadi
 """
+import random as rnd
 from keras import models
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Dropout
@@ -33,7 +34,7 @@ class AIPlayer:
         self.bettype = bettype
         self.datatype = datatype;
         if self.bettype == 'model': #or self.bettype=='heuristic':
-            if strategy==2:
+            if strategy==2 or strategy == 1:
                 if model_object is not None:
                     self.betmodel = model_object
                 else:
