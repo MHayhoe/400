@@ -5,14 +5,14 @@ import numpy as np
 import pandas as pd
 import datetime as dt
 import copy
-num_batches = 24
+num_batches = 25
 batch_size = 1000
 Bets = []
 Tricks = []
-#strategy_var = 'greedy_v_heuristic'
-#strategy_var = 'greedy_v_greedy'
-strategy_var = 'heuristic_v_heuristic'
-#strategy_var = 'heuristic_v_greedy'
+#strategy_var = 'Greedy_v_Heuristic'
+#strategy_var = 'Greedy_v_Greedy'
+strategy_var = 'Heuristic_v_Heuristic'
+#strategy_var = 'Heuristic_v_Greedy'
 
 #organization ='standard'
 #set data organization
@@ -40,9 +40,9 @@ def get_loss_bet():
 
 betting_model_objects= [None,None,None,None]
 players_to_learn_from = range(4)
-if strategy_var=='greedy_v_greedy':
-    nameString = './Data/greedy_v_greedy.csv'
-    gameTypeString = 'greedy_v_greedy'
+if strategy_var=='Greedy_v_Greedy':
+    nameString = './Data/Greedy_v_Greedy.csv'
+    gameTypeString = 'Greedy_v_Greedy'
     strategies = [2,2,2,2]
     #doesn't matter how they are betting since we are learning. Just bet heuristic
     model_vector = ['heuristic','heuristic','heuristic','heuristic']
@@ -50,24 +50,24 @@ if strategy_var=='greedy_v_greedy':
     betting_model_objects = [keras.models.load_model('./Models/Greedy_v_Greedy_bet_' + datatype + '.h5', custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet}) for i in range(4)]
 
 
-elif strategy_var =='greedy_v_heuristic':
-    nameString = './Data/greedy_v_heuristic.csv'
-    gameTypeString = 'greedy_v_heuristic'
+elif strategy_var =='Greedy_v_Heuristic':
+    nameString = './Data/Greedy_v_Heuristic.csv'
+    gameTypeString = 'Greedy_v_Heuristic'
     strategies  = [2,3,2,3]
     players_to_learn_from = [0,2]
     #model_vector = ['heuristic','heuristic','heuristic','heuristic']
 
 
-elif strategy_var=='heuristic_v_heuristic':
-    nameString = './Data/heuristic_v_heuristic.csv'
-    gameTypeString = 'heuristic_v_heuristic'
+elif strategy_var=='Heuristic_v_Heuristic':
+    nameString = './Data/Heuristic_v_Heuristic.csv'
+    gameTypeString = 'Heuristic_v_Heuristic'
     strategies = [3,3,3,3]
     model_vector = ['heuristic','heuristic','heuristic','heuristic']
     #betting_model_objects = [keras.models.load_model('./Models/Heuristic_v_Heuristic_bet_' + datatype + '.h5', custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet}) for i in range(4)]
 
-elif strategy_var=='heuristic_v_greedy':
-    nameString = './Data/heuristic_v_greedy.csv'
-    gameTypeString = 'heuristic_v_greedy'
+elif strategy_var=='Heuristic_v_Greedy':
+    nameString = './Data/Heuristic_v_Greedy.csv'
+    gameTypeString = 'Heuristic_v_Greedy'
     strategies = [3,2,3,2]
     players_to_learn_from = [0,2]
     model_vector = ['heuristic','heuristic','heuristic','heuristic']
