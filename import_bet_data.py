@@ -17,8 +17,8 @@ typeString = 'sorted'
 #typeString = 'interleave'
 #typeString = 'interleave_sorted'
 
-#strategyString = 'Heuristic_v_Greedy'
-strategyString = 'Heuristic_v_Heuristic'
+strategyString = 'Heuristic_v_Greedy'
+#strategyString = 'Heuristic_v_Heuristic'
 #strategyString = 'Greedy_v_Greedy'
 #strategyString = 'Greedy_v_Heuristic'
 modelString = strategyString + '_bet_data_' + typeString
