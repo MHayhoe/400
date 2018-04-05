@@ -39,30 +39,37 @@ def get_loss_bet():
     return loss_bet
 
 betting_model_objects= [None,None,None,None]
+players_to_learn_from = range(4)
 if strategy_var=='greedy_v_greedy':
     nameString = './Data/greedy_v_greedy.csv'
     gameTypeString = 'greedy_v_greedy'
     strategies = [2,2,2,2]
+    #doesn't matter how they are betting since we are learning. Just bet heuristic
     model_vector = ['heuristic','heuristic','heuristic','heuristic']
-    betting_models = [keras.models.load_model('./Models/Greedy_v_Greedy_bet_' + datatype + '.h5', custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet}) for i in range(4)]
+    #model_vector = ['model','model','model','model']
+    betting_model_objects = [keras.models.load_model('./Models/Greedy_v_Greedy_bet_' + datatype + '.h5', custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet}) for i in range(4)]
 
 
 elif strategy_var =='greedy_v_heuristic':
     nameString = './Data/greedy_v_heuristic.csv'
     gameTypeString = 'greedy_v_heuristic'
     strategies  = [2,3,2,3]
-    model_vector = ['model','model','model','model']
+    players_to_learn_from = [0,2]
+    #model_vector = ['heuristic','heuristic','heuristic','heuristic']
+
 
 elif strategy_var=='heuristic_v_heuristic':
     nameString = './Data/heuristic_v_heuristic.csv'
     gameTypeString = 'heuristic_v_heuristic'
     strategies = [3,3,3,3]
-    model_vector = ['model','model','model','model']
+    model_vector = ['heuristic','heuristic','heuristic','heuristic']
+    #betting_model_objects = [keras.models.load_model('./Models/Heuristic_v_Heuristic_bet_' + datatype + '.h5', custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet}) for i in range(4)]
 
 elif strategy_var=='heuristic_v_greedy':
     nameString = './Data/heuristic_v_greedy.csv'
     gameTypeString = 'heuristic_v_greedy'
     strategies = [3,2,3,2]
+    players_to_learn_from = [0,2]
     model_vector = ['heuristic','heuristic','heuristic','heuristic']
 
 
@@ -91,7 +98,7 @@ for batch in range(num_batches):
         #generate a new game
         game = Game(13, strategies, model_vector, betting_model_objects)
         scores = game.playGame()
-        for p in range(4):
+        for p in players_to_learn_from:
             #scount tricks taken and get suits and card vals
             tricks = sum(game.T[t] == p for t in range(13))
             hand = game.initialHands[p]

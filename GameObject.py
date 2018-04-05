@@ -118,7 +118,7 @@ class Game:
         
     #To handle AI bets for player p
     def aiBet(self, p, strategy=1):
-        print 'ai ' + str(p) +  ' is goign to bet ' +  str(self.aiplayers[p].get_bet(self.H[p]))
+        #print 'ai ' + str(p) +  ' is goign to bet ' +  str(self.aiplayers[p].get_bet(self.H[p]))
         return self.aiplayers[p].get_bet(self.H[p])
         # if strategy==3: # Simple heuristic
         #     bet = self.heuristicBet(p)
