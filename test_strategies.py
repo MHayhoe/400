@@ -1,19 +1,22 @@
 from GameObject import Game
 import numpy as np
 import datetime as dt
+import os
 import copy
-num_tests = 1000000
+num_tests = 1000
+import keras
+from keras import backend as K
 
 # Let's test heuristic vs random
-total_score_rando = 0
-total_score_heuristic = 0
-wins_heuristic = 0.0
-wins_rando = 0.0
-ties = 0.0
-#strategies = [3,2,3,2]
+total_score_even = 0
+total_score_odd = 0
+wins_even  = 0
+wins_odd = 0
+ties = 0
+strategies = [3,2,3,2]
 
 #uncomment this block to switch to all greedy
-strategies = [2,2,2,2]
+#strategies = [2,2,2,2]
 
 # For saving the game state after each game
 Hands = []
@@ -21,25 +24,48 @@ History = []
 Bets = []
 Scores = []
 Tricks = []
+datatype='sorted'
+def loss_bet(y_true, y_pred):
+    return K.mean(y_true + K.sign(y_pred - y_true) * y_pred)
+
+# Returns our custom loss function
+def get_loss_bet():
+    # Our custom loss function: if we make our bet (y_true >= y_pred), the loss
+    # is the amount we could have gotten if we'd bet y_true, i.e., it's
+    # y_true - y_pred. If we didn't make our bet, then our loss is what we
+    # could have gotten minus what we lost, i.e., y_true + y_pred
+    # (since -1*(-bet) = bet)
+    return loss_bet
+
+model_vector = ['model', 'model', 'model', 'model']
+betting_model_objects = [None, None, None, None]
+for p in range(4):
+    if model_vector[p] == 'model':
+        if strategies[p] == 3:
+            #print os.getcwd()
+            betting_model_objects[p] = keras.models.load_model('Models/Heuristic_v_Heuristic_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
+        elif strategies[p] == 2:
+            betting_model_objects[p] = keras.models.load_model('Models/Greedy_v_Greedy_bet_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
+print betting_model_objects
 #games = [Game(13, strategies) for i in range(num_tests)]
 for i in range(num_tests):
-    #print i
-    if i% 10000 ==1:
-        print i
-    game = Game(13, strategies)
+    print i
+    #if i% 10000 ==1:
+     #   print i
+    game = Game(13, strategies, model_vector, betting_model_objects=betting_model_objects)
     #game = games[i]
     scores = game.playGame()
     #print(scores)
-    rando_score = scores[1]+scores[3]
-    heuristic_score = scores[0]+scores[2]
+    odd_score = scores[1]+scores[3]
+    even_score = scores[0]+scores[2]
     
-    total_score_rando += rando_score
-    total_score_heuristic += heuristic_score
+    total_score_even += even_score
+    total_score_odd += odd_score
     
-    if rando_score < heuristic_score:
-        wins_heuristic += 1
-    elif rando_score > heuristic_score:
-        wins_rando += 1
+    if even_score < odd_score:
+        wins_odd += 1
+    elif even_score > odd_score:
+        wins_even += 1
     else:
         ties += 1
     tricks = [-1 for i in range(4)]
@@ -77,7 +103,9 @@ np.save(timeString + '_numTests', num_tests)
 np.save(timeString + '_Scores', Scores)
 np.save(timeString + '_Tricks', Tricks)
 
-#print 'Heuristic won ' + str(wins_heuristic/num_tests*100) + '% of games, tied ' + str(ties/num_tests*100) + '% of games.'
+print 'Even won ' + str(wins_even*1.0/num_tests*100) + '% of games with a score of ' + str(total_score_even)
+print 'Odd won ' + str(wins_odd*1.0/num_tests*100) + '% of games ' + str(total_score_odd)
+print 'There were ' + str(ties*1.0/num_tests*100) + '% of games tied'
 
 
 # it is probably better to just convert to data here...
