@@ -6,7 +6,7 @@ import keras
 from keras.models import Sequential
 from keras.layers import Dense
 
-num_tests = 10
+num_tests = 1000
 n = 13;
 
 # For tracking scores in the games
@@ -44,20 +44,20 @@ def get_loss_bet():
 def loss_bet(y_true, y_pred):
     return K.mean(y_true + K.sign(y_pred - y_true) * y_pred)
 
-# Initialize the betting NN model
-bet_model = Sequential()
-bet_model.add(Dense(13, input_dim=26, activation='relu'))
-bet_model.add(Dense(13, activation='relu'))
-bet_model.add(Dense(1, activation='relu'))
-
-# Initialize the NN optimizer and other parameters
-sgd = keras.optimizers.SGD(lr=.01,clipnorm=10.)
-batchsize = 128
-epoches = 100
-
-# Compile the model
-bet_model.compile(loss=get_loss_bet(), optimizer=sgd, metrics=['mean_absolute_error',get_loss_bet()])
-
+## Initialize the betting NN model
+#bet_model = Sequential()
+#bet_model.add(Dense(13, input_dim=26, activation='relu'))
+#bet_model.add(Dense(13, activation='relu'))
+#bet_model.add(Dense(1, activation='relu'))
+#
+## Initialize the NN optimizer and other parameters
+#sgd = keras.optimizers.SGD(lr=.01,clipnorm=10.)
+#batchsize = 128
+epoches = 10
+#
+## Compile the model
+#bet_model.compile(loss=get_loss_bet(), optimizer=sgd, metrics=['mean_absolute_error',get_loss_bet()])
+bet_model = model
 
 #--------------------------
 #  PLAY AND TRAIN
@@ -68,7 +68,7 @@ for i in range(num_tests):
     if i % 10000 == 1:
         print(i)
         
-    game = Game(n, strategies, )
+    game = Game(n, strategies, ['model' for i in range(4)], n, [bet_model for i in range(4)])
     scores = game.playGame()
     
     score_team1 = scores[0] + scores[2]
@@ -98,8 +98,12 @@ for i in range(num_tests):
     # Count the number of tricks each player won
     tricks = [sum(game.T[t] == p for t in range(n)) for p in range(4)]
     
-    # Train the betting NN
-    hist = bet_model.fit(np.array(x_train), tricks, batch_size=1, epochs = epoches, verbose=1)
+    if i % 2 == 0:
+        # Train the betting NN on even trials
+        hist = bet_model.fit(np.array(x_train), tricks, batch_size=1, epochs = epoches, verbose=0)
+    else:
+        # Train the playing RL NN on odd trials
+        pass
     
     # Record the performance
     Bet_Model_History.append(hist)
