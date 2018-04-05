@@ -5,14 +5,14 @@ import numpy as np
 import pandas as pd
 import datetime as dt
 import copy
-num_batches = 25
+num_batches = 50
 batch_size = 1000
 Bets = []
 Tricks = []
 #strategy_var = 'Greedy_v_Heuristic'
 #strategy_var = 'Greedy_v_Greedy'
-strategy_var = 'Heuristic_v_Heuristic'
-#strategy_var = 'Heuristic_v_Greedy'
+#strategy_var = 'Heuristic_v_Heuristic'
+strategy_var = 'Heuristic_v_Greedy'
 
 #organization ='standard'
 #set data organization
@@ -88,9 +88,9 @@ elif organization =='interleave_sorted':
 y_size = 1
 
 models = []
-
+num_learn_from = len(players_to_learn_from)
 for batch in range(num_batches):
-    dataarray = np.zeros((4*batch_size, x_size+y_size)).astype(int)
+    dataarray = np.zeros((num_learn_from*batch_size, x_size+y_size)).astype(int)
     for t in range(batch_size):
         #print progress
         if t%(batch_size/10)==1:
@@ -98,6 +98,7 @@ for batch in range(num_batches):
         #generate a new game
         game = Game(13, strategies, model_vector, betting_model_objects)
         scores = game.playGame()
+        #print players_to_learn_from
         for p in players_to_learn_from:
             #scount tricks taken and get suits and card vals
             tricks = sum(game.T[t] == p for t in range(13))
@@ -137,8 +138,8 @@ for batch in range(num_batches):
             elif organization=='sorted':
                 x_obs = x_sorted
             y_obs = tricks
-            dataarray[4*t+p,0:x_size] = x_obs
-            dataarray[4*t+p, x_size:x_size+y_size] = y_obs
+            dataarray[num_learn_from*t+(p%num_learn_from),0:x_size] = x_obs
+            dataarray[num_learn_from*t+(p%num_learn_from), x_size:x_size+y_size] = y_obs
     #now ready to append current array
     with open(nameString, "a") as output:
         np.savetxt(output, dataarray,delimiter=',',fmt= '%i')

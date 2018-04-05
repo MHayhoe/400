@@ -37,6 +37,7 @@ class AIPlayer:
                 if model_object is not None:
                     self.betmodel = model_object
                 else:
+                    print ('loading greedy from AI Player')
                     self.betmodel = keras.models.load_model('./Models/Greedy_v_Greedy_bet_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
             elif strategy==3:
                 if model_object is not None:
