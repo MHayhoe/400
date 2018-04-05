@@ -9,13 +9,13 @@ from keras.layers import Dense
 import matplotlib.pyplot as plt
 
 # Number of rounds of play to run
-num_tests = 100000
+num_tests = 1000
 
 # Number of cards to give to each player, and number of tricks in each round
 n = 13;
 
 # Interval at which to train
-train_interval = 1000;
+train_interval = num_tests/10;
 # Offset of training for betting and playing
 train_offset = train_interval/2;
 
@@ -57,26 +57,28 @@ def loss_bet(y_true, y_pred):
     return K.mean(y_true + K.sign(y_pred - y_true) * y_pred)
 
 # To track the loss for each batch during training of a model
-class LossHistory(keras.callbacks.Callback):
+class batch_loss_history(keras.callbacks.Callback):
     def on_train_begin(self, logs={}):
         self.losses = []
     def on_batch_end(self, batch, logs={}):
         self.losses.append(logs.get('loss'))
 
 ## Initialize the betting NN model
-#bet_model = Sequential()
-#bet_model.add(Dense(13, input_dim=26, activation='relu'))
-#bet_model.add(Dense(13, activation='relu'))
-#bet_model.add(Dense(1, activation='relu'))
-#
-## Initialize the NN optimizer and other parameters
-#sgd = keras.optimizers.SGD(lr=.01,clipnorm=10.)
+bet_model = Sequential()
+bet_model.add(Dense(20, input_dim=26))
+bet_model.add(keras.layers.LeakyReLU(alpha=0.1))
+#bet_model.add(Dense(5, activation='relu'))
+#bet_model.add(Dense(10, activation='relu'))
+bet_model.add(Dense(1, activation='relu'))
+
+# Initialize the NN optimizer and other parameters
+sgd = keras.optimizers.SGD(lr=.01,clipnorm=10.)
+opt = keras.optimizers.RMSprop(lr=.01,clipnorm=10.)
 batchsize = 128
-epoches = 20
-#
-## Compile the model
-#bet_model.compile(loss=get_loss_bet(), optimizer=sgd, metrics=['mean_absolute_error',get_loss_bet()])
-bet_model = model
+num_epochs = 20
+
+# Compile the model
+bet_model.compile(loss=get_loss_bet(), optimizer=sgd, metrics=['mean_absolute_error',get_loss_bet()])
 
 x_train = []
 y_train = []
@@ -88,9 +90,9 @@ y_train = []
 for t in range(1,num_tests+1):
     # Count 10,000's of rounds
     #if i % 10000 == 1:
-    print(t)
+    #print(t)
         
-    game = Game(n, strategies, ['model' for i in range(4)], n, [bet_model for i in range(4)])
+    game = Game(n, strategies, ['model','model','model','model'], n, [bet_model for i in range(4)])
     scores = game.playGame()
     
     score_team1 = scores[0] + scores[2]
@@ -125,13 +127,18 @@ for t in range(1,num_tests+1):
         vals = [init_hands[p].cards[i].value for i in range(n)]
         suits = [init_hands[p].cards[i].suit for i in range(n)]
         x_train.append(vals + suits)
+#        x_binary = [0 for i in range(n*4)]
+#        for c in init_hands[p].cards:
+#            x_binary[c.suit*4 + c.value] = 1
+#        x_train.append(x_binary)
         y_train.append(tricks)
     
     # Train the betting NN
     if t % train_interval == 0:
-        print 'Trainig betting...'
-        hist = LossHistory()
-        bet_model.fit(np.array(x_train), np.array(y_train), batch_size=batchsize, epochs = epoches, verbose=0, callbacks=[hist])
+        print 'Training betting...'
+        hist = batch_loss_history()
+        bet_model.fit(np.array(x_train), np.array(y_train), batch_size=batchsize, epochs = num_epochs, verbose=0, callbacks=[hist])
+        print 'Done.'
         
         # --- Record the performance ---
         training_range = range(int(t/train_interval - 1)*train_interval,int(t/train_interval)*train_interval)

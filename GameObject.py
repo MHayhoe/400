@@ -180,7 +180,10 @@ class Game:
         card_played_by = {card.__str__():None for card in Deck().cards}
         suit_trumped_by = {i:set() for i in range(4)}
         bet_deficits = list(self.bets)
-        #print(self.bets)
+        
+        # Randmly choose who goes first
+        first_player = rnd.randint(0,3);
+        
         # Go through the rounds
         for t in range(0, self.num_rounds):
             # No lead suit yet
@@ -190,6 +193,8 @@ class Game:
             for p in range(4):
                 if t > 0: # The previous winner should go first, then continue in order
                     p = (p + self.T[t-1]) % 4;
+                else:
+                    p = (p + first_player) % 4;
 
                 if self.player_strategy[p] == 0: # Ask for human input
                     self.h[t][p] = self.humanInput(p);
