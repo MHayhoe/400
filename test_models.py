@@ -3,9 +3,10 @@ import numpy as np
 
 from keras import backend as K
 import keras
-from keras.models import Sequential
+#from keras.models import Sequential
 import keras.layers as L
 import keras.regularizers as R
+import keras.models as M
 
 import matplotlib.pyplot as plt
 
@@ -55,6 +56,7 @@ def get_loss_bet():
 # could have gotten minus what we lost, i.e., y_true + y_pred
 # (since -1*(-bet) = bet)
 def loss_bet(y_true, y_pred):
+    #return K.square(y_true - y_pred)
     return K.mean(y_true + K.sign(y_pred - y_true) * y_pred)
 
 # To track the loss for each batch during training of a model
@@ -64,25 +66,45 @@ class batch_loss_history(keras.callbacks.Callback):
     def on_batch_end(self, batch, logs={}):
         self.losses.append(logs.get('loss'))
 
-## Initialize the betting NN model
-bet_model = Sequential()
-#bet_model.add(L.Dense(10, input_shape=(4,13,1)))
-bet_model.add(L.LeakyReLU(alpha=0.3, input_shape=(4,13,1)))
-bet_model.add(L.Conv2D(1, (1,3), use_bias=False, activation='linear', kernel_regularizer=R.l2(10)))
-bet_model.add(L.BatchNormalization(axis=1))
-#bet_model.add(L.Dense(10))
-bet_model.add(L.LeakyReLU(alpha=0.3))
-bet_model.add(L.Conv2D(1, (1,3), use_bias=False, activation='linear', kernel_regularizer=R.l2(0.1)))
-bet_model.add(L.BatchNormalization(axis=1))
-bet_model.add(L.Flatten())
-#bet_model.add(Dense(5, activation='relu'))
-#bet_model.add(Dense(10, activation='relu'))
-bet_model.add(L.Dense(1, activation='relu'))
-#bet_model.summary()
+### Initialize the betting NN model
+#bet_model = Sequential()
+##bet_model.add(L.Dense(10, input_shape=(4,13,1)))
+#bet_model.add(L.LeakyReLU(alpha=0.3, input_shape=(4,13,1)))
+#bet_model.add(L.Conv2D(1, (1,3), use_bias=False, activation='linear', kernel_regularizer=R.l2(10)))
+#bet_model.add(L.BatchNormalization(axis=1))
+##bet_model.add(L.Dense(10))
+#bet_model.add(L.LeakyReLU(alpha=0.3))
+#bet_model.add(L.Conv2D(1, (1,3), use_bias=False, activation='linear', kernel_regularizer=R.l2(0.1)))
+#bet_model.add(L.BatchNormalization(axis=1))
+#bet_model.add(L.Flatten())
+##bet_model.add(Dense(5, activation='relu'))
+##bet_model.add(Dense(10, activation='relu'))
+#bet_model.add(L.Dense(1, activation='relu'))
+##bet_model.summary()
+
+reg = 0.1
+
+input_layer = L.Input(shape = (4,13,1))
+xl = L.LeakyReLU()(input_layer)
+x = L.Conv2D(1, 1, activation='linear', use_bias=False, kernel_regularizer=R.l2(reg))(xl)
+x = L.BatchNormalization(axis=1)(x)
+x = L.LeakyReLU()(x)
+x = L.Conv2D(1, 1, activation='linear', use_bias=False, kernel_regularizer=R.l2(reg))(x)
+x = L.BatchNormalization(axis=1)(x)
+x = L.Add()([x, xl])
+x = L.LeakyReLU()(x)
+x = L.Conv2D(5, (1,4), activation='linear', use_bias=False, kernel_regularizer=R.l2(reg))(xl)
+x = L.BatchNormalization(axis=1)(x)
+x = L.LeakyReLU()(x)
+x = L.Flatten()(x)
+output_layer = L.Dense(1, activation='linear', use_bias = False)(x)
+
+bet_model = M.Model(inputs=input_layer, outputs=output_layer)
+bet_model.summary()
 
 # Initialize the NN optimizer and other parameters
 sgd = keras.optimizers.SGD(lr=.01,clipnorm=10.)
-opt = keras.optimizers.RMSprop(lr=.01,clipnorm=10.)
+opt = keras.optimizers.RMSprop(lr=.01,clipnorm=1.)
 batchsize = 128
 num_epochs = 20
 
