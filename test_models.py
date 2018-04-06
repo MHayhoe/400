@@ -4,18 +4,19 @@ import numpy as np
 from keras import backend as K
 import keras
 from keras.models import Sequential
-from keras.layers import Dense
+import keras.layers as L
+import keras.regularizers as R
 
 import matplotlib.pyplot as plt
 
 # Number of rounds of play to run
-num_tests = 10000
+num_tests = 50000           
 
 # Number of cards to give to each player, and number of tricks in each round
 n = 13;
 
 # Interval at which to train
-train_interval = num_tests/10;
+train_interval = num_tests/50;
 # Offset of training for betting and playing
 train_offset = train_interval/2;
 
@@ -65,11 +66,19 @@ class batch_loss_history(keras.callbacks.Callback):
 
 ## Initialize the betting NN model
 bet_model = Sequential()
-bet_model.add(Dense(20, input_dim=52))
-bet_model.add(keras.layers.LeakyReLU(alpha=0.3))
+#bet_model.add(L.Dense(10, input_shape=(4,13,1)))
+bet_model.add(L.LeakyReLU(alpha=0.3, input_shape=(4,13,1)))
+bet_model.add(L.Conv2D(1, (1,3), use_bias=False, activation='linear', kernel_regularizer=R.l2(10)))
+bet_model.add(L.BatchNormalization(axis=1))
+#bet_model.add(L.Dense(10))
+bet_model.add(L.LeakyReLU(alpha=0.3))
+bet_model.add(L.Conv2D(1, (1,3), use_bias=False, activation='linear', kernel_regularizer=R.l2(0.1)))
+bet_model.add(L.BatchNormalization(axis=1))
+bet_model.add(L.Flatten())
 #bet_model.add(Dense(5, activation='relu'))
 #bet_model.add(Dense(10, activation='relu'))
-bet_model.add(Dense(1, activation='relu'))
+bet_model.add(L.Dense(1, activation='relu'))
+#bet_model.summary()
 
 # Initialize the NN optimizer and other parameters
 sgd = keras.optimizers.SGD(lr=.01,clipnorm=10.)
@@ -122,15 +131,16 @@ for t in range(1,num_tests+1):
     Tricks.append(tricks)
     
     # Save the hands as training data for the betting NN
-    for p in [0, 2]:
+    for p in [0]:
         init_hands[p].sort()
 #        vals = [init_hands[p].cards[i].value for i in range(n)]
 #        suits = [init_hands[p].cards[i].suit for i in range(n)]
 #        x_train.append(vals + suits)
-        x_binary = [0 for i in range(n*4)]
-        for c in init_hands[p].cards:
-            x_binary[c.suit*4 + c.value] = 1
-        x_train.append(x_binary)
+#        x_binary = [0 for i in range(n*4)]
+#        for c in init_hands[p].cards:
+#            x_binary[c.suit*4 + c.value] = 1
+#        x_train.append(x_binary)
+        x_train.append( init_hands[p].get_cards_as_matrix() )
         y_train.append(tricks)
     
     # Train the betting NN
@@ -149,6 +159,14 @@ for t in range(1,num_tests+1):
     
         x_train = []
         y_train = []
+        
+        plt.figure(2)
+        plt.plot(Bet_Model_History)
+
+        plt.figure(3)
+        plt.plot(Average_Scores)
+        
+        plt.show()
     # Train the playing NN
     elif (t + train_offset) % train_interval == 0:
         print 'Training strategies PLACEHOLDER'
@@ -162,8 +180,3 @@ Total_Scores = [sum([Scores[i][p] for i in range(num_tests)]) for p in range(4)]
 #plt.figure(1)
 #plt.plot(diff)
 #plt.plot([Scores[i,0] for i in range(num_tests)])
-plt.figure(2)
-plt.plot(Bet_Model_History)
-
-plt.figure(3)
-plt.plot(Average_Scores)

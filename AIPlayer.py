@@ -65,7 +65,8 @@ class AIPlayer:
     # ----- Get Bet -----
     def get_bet(self, hand):
         if self.bettype == 'model': #or self.bettype=='heuristic':
-            model_bet = self.betmodel.predict(np.array([self.get_cards(hand)]))[0][0]
+            model_bet = self.betmodel.predict(np.reshape(hand.get_cards_as_matrix(),(1,4,13,1)))[0][0]
+            #print model_bet
             bet = max(min(13, round(model_bet)), 2)
         elif self.bettype == 'heuristic':
             bet = hai.heuristicBet(hand)
