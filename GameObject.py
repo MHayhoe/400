@@ -29,7 +29,7 @@ class Game:
         self.player_models =model_vector;
         self.n = n;
         self.betting_model_objects = betting_model_objects
-        self.aiplayers = [AIPlayer(self.player_strategy[i], self.player_models[i], 'sorted', model_object= self.betting_model_objects[i]) for i in range(4)]
+        self.aiplayers = [AIPlayer(self.player_strategy[i], self.player_models[i], 'binary', model_object= self.betting_model_objects[i]) for i in range(4)]
 
         # There's a human player, so we want to print
         if 0 in strategy_vector:
@@ -181,21 +181,25 @@ class Game:
         suit_trumped_by = {i:set() for i in range(4)}
         bet_deficits = list(self.bets)
         
-        # Randmly choose who goes first
-        first_player = rnd.randint(0,3);
+
         
         # Go through the rounds
         for t in range(0, self.num_rounds):
             # No lead suit yet
             Card.lead = -1;
             cards_this_round = {i: None for i in range(4)}
+            
+            order = range(4);
+            
+            # Permute player order
+            if t > 0: # The previous winner should go first, then continue in order
+                order = order[self.T[t-1]:] + order[:self.T[t-1]]
+            else:   # Randomly choose who goes first
+                first_player = rnd.randint(0,3);
+                order = order[first_player:] + order[:first_player]
+            
             # Loop through players
-            for p in range(4):
-                if t > 0: # The previous winner should go first, then continue in order
-                    p = (p + self.T[t-1]) % 4;
-                else:
-                    p = (p + first_player) % 4;
-
+            for p in order:
                 if self.player_strategy[p] == 0: # Ask for human input
                     self.h[t][p] = self.humanInput(p);
                 else:                   # Ask for AI input with strategy in player_strategy[p]
@@ -213,8 +217,8 @@ class Game:
                 cards_this_round[p] = self.h[t][p]
                 #update the card_played_by dict
                 card_played_by[str(self.h[t][p])]=p
-                if Card.lead in [1,2,4]:
-                    if self.h[t][p].suit == 3:
+                if Card.lead != -1 and Card.lead != Card.trump:
+                    if self.h[t][p].suit == Card.trump:
                         suit_trumped_by[Card.lead].add(p)
 
             # Find the winning player from the cards played this round
