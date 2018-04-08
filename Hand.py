@@ -165,4 +165,10 @@ class Hand:
         x_interleave_sorted = np.array([val for pair in zip(vals_sorted, suits_sorted) for val in pair]).astype(int)
         return x_interleave_sorted
 
+    # Returns a 4-by-13 binary matrix with ones for cards existing in the hand
+    def get_cards_as_matrix(self):
+        binmat = np.zeros((4,13))
+        for c in self.cards:
+            binmat[c.suit, c.value-2] = 1
+        return np.reshape(binmat, (4,13,1))
 
