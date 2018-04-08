@@ -12,10 +12,10 @@ typeString = 'sorted'
 #typeString = 'interleave'
 #typeString = 'interleave_sorted'
 
-strategyString = 'Heuristic_v_Greedy'
+#strategyString = 'Heuristic_v_Greedy'
 #strategyString = 'Heuristic_v_Heuristic'
 #strategyString = 'Greedy_v_Greedy'
-#strategyString = 'Greedy_v_Heuristic'
+strategyString = 'Greedy_v_Heuristic'
 modelString = strategyString + '_bet_data_' + typeString
 nameString = './Data/' + strategyString + '_bet_data_' + typeString
 
@@ -44,6 +44,8 @@ def get_loss_bet():
 
 model = Sequential()
 #add initial layer
+
+
 model.add(Dense(13, input_dim=26, activation='relu'))
 model.add(Dense(13, activation='relu'))
 #model.add(Dropout(.5))
@@ -57,7 +59,7 @@ model.compile(loss=get_loss_bet(),
               optimizer=sgd,
               metrics=['mean_absolute_error',get_loss_bet()])
 batchsize = 128
-epoches = 1000
+epoches = 10
 history = model.fit(x_train, y_train,
                     batch_size=batchsize,
                     epochs = epoches,
@@ -73,3 +75,4 @@ for i in range(len(pred)):
     mae[i] = np.abs(np.round(pred[i]) - y_test[i])
 
 model.save('./Models/'+modelString+'.h5')
+print pred

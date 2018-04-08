@@ -44,7 +44,8 @@ class AIPlayer:
                 if model_object is not None:
                     self.betmodel = model_object
                 else:
-                    self.betmodel = keras.models.load_model('./Models/Heuristic_v_Heuristic_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
+                    #self.betmodel = keras.models.load_model('./Models/Heuristic_v_Heuristic_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
+                    self.betmodel = keras.models.load_model('./Models/Heuristic_v_Greedy_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
 
         elif self.bettype=='heuristic':
             pass
@@ -64,9 +65,14 @@ class AIPlayer:
 
     # ----- Get Bet -----
     def get_bet(self, hand):
+        #print hand
+        #print self.datatype
+        #print self.get_cards(hand)
         if self.bettype == 'model': #or self.bettype=='heuristic':
             model_bet = self.betmodel.predict(np.array([self.get_cards(hand)]))[0][0]
+            #print model_bet
             bet = max(min(13, round(model_bet)), 2)
+            #print bet
         elif self.bettype == 'heuristic':
             bet = hai.heuristicBet(hand)
         else:

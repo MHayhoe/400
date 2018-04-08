@@ -3,7 +3,7 @@ import numpy as np
 import datetime as dt
 import os
 import copy
-num_tests = 1000
+num_tests = 100
 import keras
 from keras import backend as K
 
@@ -47,7 +47,7 @@ for p in range(4):
             betting_model_objects[p] = keras.models.load_model('Models/Heuristic_v_Greedy_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
 
         elif strategies[p] == 2:
-            betting_model_objects[p] = keras.models.load_model('Models/Greedy_v_Greedy_bet_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
+            betting_model_objects[p] = keras.models.load_model('Models/Greedy_v_Heuristic_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
 print betting_model_objects
 #games = [Game(13, strategies) for i in range(num_tests)]
 for i in range(num_tests):
@@ -57,6 +57,7 @@ for i in range(num_tests):
     game = Game(13, strategies, model_vector, betting_model_objects=betting_model_objects)
     #game = games[i]
     scores = game.playGame()
+    print game.initialbets
     #print(scores)
     odd_score = scores[1]+scores[3]
     even_score = scores[0]+scores[2]
@@ -106,7 +107,7 @@ for i in range(num_tests):
 # np.save(timeString + '_Tricks', Tricks)
 
 print 'Even won ' + str(wins_even*1.0/num_tests*100) + '% of games with a score of ' + str(total_score_even)
-print 'Odd won ' + str(wins_odd*1.0/num_tests*100) + '% of games ' + str(total_score_odd)
+print 'Odd won ' + str(wins_odd*1.0/num_tests*100) + '% of games with a score of ' + str(total_score_odd)
 print 'There were ' + str(ties*1.0/num_tests*100) + '% of games tied'
 
 

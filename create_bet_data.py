@@ -9,10 +9,10 @@ num_batches = 50
 batch_size = 1000
 Bets = []
 Tricks = []
-#strategy_var = 'Greedy_v_Heuristic'
+strategy_var = 'Greedy_v_Heuristic'
 #strategy_var = 'Greedy_v_Greedy'
 #strategy_var = 'Heuristic_v_Heuristic'
-strategy_var = 'Heuristic_v_Greedy'
+#strategy_var = 'Heuristic_v_Greedy'
 
 #organization ='standard'
 #set data organization
@@ -54,6 +54,8 @@ elif strategy_var =='Greedy_v_Heuristic':
     nameString = './Data/Greedy_v_Heuristic.csv'
     gameTypeString = 'Greedy_v_Heuristic'
     strategies  = [2,3,2,3]
+    model_vector = ['heuristic','heuristic','heuristic','heuristic']
+    model_vector = ['heuristic','heuristic','heuristic','heuristic']
     players_to_learn_from = [0,2]
     #model_vector = ['heuristic','heuristic','heuristic','heuristic']
 
@@ -89,6 +91,7 @@ y_size = 1
 
 models = []
 num_learn_from = len(players_to_learn_from)
+#print num_learn_from
 for batch in range(num_batches):
     dataarray = np.zeros((num_learn_from*batch_size, x_size+y_size)).astype(int)
     for t in range(batch_size):
@@ -99,7 +102,9 @@ for batch in range(num_batches):
         game = Game(13, strategies, model_vector, betting_model_objects)
         scores = game.playGame()
         #print players_to_learn_from
-        for p in players_to_learn_from:
+        for i in range(len(players_to_learn_from)):
+            p = players_to_learn_from[i]
+            #print(p)
             #scount tricks taken and get suits and card vals
             tricks = sum(game.T[t] == p for t in range(13))
             hand = game.initialHands[p]
@@ -138,8 +143,8 @@ for batch in range(num_batches):
             elif organization=='sorted':
                 x_obs = x_sorted
             y_obs = tricks
-            dataarray[num_learn_from*t+(p%num_learn_from),0:x_size] = x_obs
-            dataarray[num_learn_from*t+(p%num_learn_from), x_size:x_size+y_size] = y_obs
+            dataarray[num_learn_from*t+i,0:x_size] = x_obs
+            dataarray[num_learn_from*t+i, x_size:x_size+y_size] = y_obs
     #now ready to append current array
     with open(nameString, "a") as output:
         np.savetxt(output, dataarray,delimiter=',',fmt= '%i')
