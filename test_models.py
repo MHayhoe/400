@@ -11,13 +11,13 @@ import keras.models as M
 import matplotlib.pyplot as plt
 
 # Number of rounds of play to run
-num_tests = 50000           
+num_tests = 100000           
 
 # Number of cards to give to each player, and number of tricks in each round
 n = 13;
 
 # Interval at which to train
-train_interval = num_tests/50;
+train_interval = num_tests/100;
 # Offset of training for betting and playing
 train_offset = train_interval/2;
 
@@ -57,7 +57,7 @@ def get_loss_bet():
 # (since -1*(-bet) = bet)
 def loss_bet(y_true, y_pred):
     #return K.square(y_true - y_pred)
-    return K.mean(y_true + K.sign(y_pred - y_true) * y_pred)
+    return K.square(y_true + K.sign(y_pred - y_true) * y_pred)
 
 # To track the loss for each batch during training of a model
 class batch_loss_history(keras.callbacks.Callback):
@@ -93,17 +93,18 @@ x = L.Conv2D(1, 1, activation='linear', use_bias=False, kernel_regularizer=R.l2(
 x = L.BatchNormalization(axis=1)(x)
 x = L.Add()([x, xl])
 x = L.LeakyReLU()(x)
-x = L.Conv2D(5, (1,4), activation='linear', use_bias=False, kernel_regularizer=R.l2(reg))(xl)
+x = L.Conv2D(2, (1,4), activation='linear', use_bias=False, kernel_regularizer=R.l2(reg))(xl)
 x = L.BatchNormalization(axis=1)(x)
 x = L.LeakyReLU()(x)
 x = L.Flatten()(x)
+#x = L.Dense(13,activation = 'sigmoid', use_bias = False)(x)
 output_layer = L.Dense(1, activation='linear', use_bias = False)(x)
 
 bet_model = M.Model(inputs=input_layer, outputs=output_layer)
 bet_model.summary()
 
 # Initialize the NN optimizer and other parameters
-sgd = keras.optimizers.SGD(lr=.01,clipnorm=10.)
+sgd = keras.optimizers.SGD(lr=.01,clipnorm=1000.)
 opt = keras.optimizers.RMSprop(lr=.01,clipnorm=1.)
 batchsize = 128
 num_epochs = 20
@@ -163,7 +164,7 @@ for t in range(1,num_tests+1):
 #            x_binary[c.suit*4 + c.value] = 1
 #        x_train.append(x_binary)
         x_train.append( init_hands[p].get_cards_as_matrix() )
-        y_train.append(tricks)
+        y_train.append(tricks[p])
     
     # Train the betting NN
     if t % train_interval == 0:

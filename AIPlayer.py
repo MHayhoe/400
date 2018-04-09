@@ -71,7 +71,7 @@ class AIPlayer:
         elif self.bettype == 'heuristic':
             bet = hai.heuristicBet(hand)
         else:
-            bet = rnd.randint(2, 5)
+            bet = rnd.randint(2, 13)
         return bet
     
     #------ Get Cards ----

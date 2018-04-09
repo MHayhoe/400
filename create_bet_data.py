@@ -1,7 +1,6 @@
 import numpy as np
 import csv
 from GameObject import Game
-import numpy as np
 import pandas as pd
 import datetime as dt
 import copy
@@ -23,7 +22,6 @@ organization = 'sorted'
 
 import keras
 from keras import backend as K
-import numpy as np
 import heuristicAI as hai
 
 def loss_bet(y_true, y_pred):
