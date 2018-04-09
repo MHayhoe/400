@@ -241,3 +241,9 @@ class Game:
         self.playRound()
         self.printVerbose(self.bets)
         return(self.getFinalScores(self.bets, self.T))
+    def getTricks(self):
+        tricks = [-1,-1,-1,-1]
+        for p in range(4):
+            tricks_p = sum(self.T[t] ==p for t in range(13))
+            tricks[p] = tricks_p
+        return tricks

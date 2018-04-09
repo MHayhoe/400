@@ -12,6 +12,8 @@ total_score_even = 0
 total_score_odd = 0
 wins_even  = 0
 wins_odd = 0
+total_tricks_even = 0
+total_tricks_odd = 0
 ties = 0
 strategies = [3,2,3,2]
 
@@ -57,14 +59,18 @@ for i in range(num_tests):
     game = Game(13, strategies, model_vector, betting_model_objects=betting_model_objects)
     #game = games[i]
     scores = game.playGame()
+    tricks = game.getTricks()
     print game.initialbets
     #print(scores)
     odd_score = scores[1]+scores[3]
     even_score = scores[0]+scores[2]
-    
+    odd_tricks = tricks[1] + tricks[3]
+    even_tricks = tricks[0] + tricks[2]
     total_score_even += even_score
     total_score_odd += odd_score
-    
+    total_tricks_even += even_tricks
+    total_tricks_odd += odd_tricks
+
     if even_score < odd_score:
         wins_odd += 1
     elif even_score > odd_score:
@@ -106,8 +112,8 @@ for i in range(num_tests):
 # np.save(timeString + '_Scores', Scores)
 # np.save(timeString + '_Tricks', Tricks)
 
-print 'Even won ' + str(wins_even*1.0/num_tests*100) + '% of games with a score of ' + str(total_score_even)
-print 'Odd won ' + str(wins_odd*1.0/num_tests*100) + '% of games with a score of ' + str(total_score_odd)
+print 'Even won ' + str(wins_even*1.0/num_tests*100) + '% of games with a score of ' + str(total_score_even) + ' and raw tricks of ' + str(total_tricks_even)
+print 'Odd won ' + str(wins_odd*1.0/num_tests*100) + '% of games with a score of ' + str(total_score_odd) + ' and raw tricks of ' + str(total_tricks_odd)
 print 'There were ' + str(ties*1.0/num_tests*100) + '% of games tied'
 
 
