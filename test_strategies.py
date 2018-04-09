@@ -3,7 +3,7 @@ import numpy as np
 import datetime as dt
 import os
 import copy
-num_tests = 1000
+num_tests = 100
 import keras
 from keras import backend as K
 
@@ -12,6 +12,8 @@ total_score_even = 0
 total_score_odd = 0
 wins_even  = 0
 wins_odd = 0
+total_tricks_even = 0
+total_tricks_odd = 0
 ties = 0
 strategies = [3,2,3,2]
 
@@ -43,25 +45,32 @@ for p in range(4):
     if model_vector[p] == 'model':
         if strategies[p] == 3:
             #print os.getcwd()
-            betting_model_objects[p] = keras.models.load_model('Models/Heuristic_v_Heuristic_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
+            #betting_model_objects[p] = keras.models.load_model('Models/Heuristic_v_Heuristic_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
+            betting_model_objects[p] = keras.models.load_model('Models/Heuristic_v_Greedy_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
+
         elif strategies[p] == 2:
-            betting_model_objects[p] = keras.models.load_model('Models/Greedy_v_Greedy_bet_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
+            betting_model_objects[p] = keras.models.load_model('Models/Greedy_v_Heuristic_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
 print betting_model_objects
 #games = [Game(13, strategies) for i in range(num_tests)]
 for i in range(num_tests):
-    print i
+    #print i
     #if i% 10000 ==1:
      #   print i
     game = Game(13, strategies, model_vector, betting_model_objects=betting_model_objects)
     #game = games[i]
     scores = game.playGame()
+    tricks = game.getTricks()
+    print game.initialbets
     #print(scores)
     odd_score = scores[1]+scores[3]
     even_score = scores[0]+scores[2]
-    
+    odd_tricks = tricks[1] + tricks[3]
+    even_tricks = tricks[0] + tricks[2]
     total_score_even += even_score
     total_score_odd += odd_score
-    
+    total_tricks_even += even_tricks
+    total_tricks_odd += odd_tricks
+
     if even_score < odd_score:
         wins_odd += 1
     elif even_score > odd_score:
@@ -90,21 +99,21 @@ for i in range(num_tests):
 
 #print Hands
 #print Bets
-tempTime = dt.datetime.now().time();
-#timeString = 'Data/Heuristic_v_Greedy' + str(dt.datetime.now().date()) + '-' + str(tempTime.hour) + '-' + str(tempTime.minute) + '-' + str(tempTime.second);
-#timeString = 'Data/Greedy_v_Greedy' + str(dt.datetime.now().date()) + '-' + str(tempTime.hour) + '-' + str(tempTime.minute) + '-' + str(tempTime.second);
-timeString = 'Data/Greedy_v_Greedy' #+ str(dt.datetime.now().date()) + '-' + str(tempTime.hour) + '-' + str(tempTime.minute) + '-' + str(tempTime.second);
+# tempTime = dt.datetime.now().time();
+# #timeString = 'Data/Heuristic_v_Greedy' + str(dt.datetime.now().date()) + '-' + str(tempTime.hour) + '-' + str(tempTime.minute) + '-' + str(tempTime.second);
+# #timeString = 'Data/Greedy_v_Greedy' + str(dt.datetime.now().date()) + '-' + str(tempTime.hour) + '-' + str(tempTime.minute) + '-' + str(tempTime.second);
+# timeString = 'Data/Greedy_v_Greedy' #+ str(dt.datetime.now().date()) + '-' + str(tempTime.hour) + '-' + str(tempTime.minute) + '-' + str(tempTime.second);
+#
+# np.save(timeString + '_Hands', Hands)
+# np.save(timeString + '_History', History)
+# #np.save(timeString + '_Winners', Winners)
+# np.save(timeString + '_Bets', Bets)
+# np.save(timeString + '_numTests', num_tests)
+# np.save(timeString + '_Scores', Scores)
+# np.save(timeString + '_Tricks', Tricks)
 
-np.save(timeString + '_Hands', Hands)
-np.save(timeString + '_History', History)
-#np.save(timeString + '_Winners', Winners)
-np.save(timeString + '_Bets', Bets)
-np.save(timeString + '_numTests', num_tests)
-np.save(timeString + '_Scores', Scores)
-np.save(timeString + '_Tricks', Tricks)
-
-print 'Even won ' + str(wins_even*1.0/num_tests*100) + '% of games with a score of ' + str(total_score_even)
-print 'Odd won ' + str(wins_odd*1.0/num_tests*100) + '% of games ' + str(total_score_odd)
+print 'Even won ' + str(wins_even*1.0/num_tests*100) + '% of games with a score of ' + str(total_score_even) + ' and raw tricks of ' + str(total_tricks_even)
+print 'Odd won ' + str(wins_odd*1.0/num_tests*100) + '% of games with a score of ' + str(total_score_odd) + ' and raw tricks of ' + str(total_tricks_odd)
 print 'There were ' + str(ties*1.0/num_tests*100) + '% of games tied'
 
 

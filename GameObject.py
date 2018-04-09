@@ -29,7 +29,7 @@ class Game:
         self.player_models =model_vector;
         self.n = n;
         self.betting_model_objects = betting_model_objects
-        self.aiplayers = [AIPlayer(self.player_strategy[i], self.player_models[i], 'binary', model_object= self.betting_model_objects[i]) for i in range(4)]
+        self.aiplayers = [AIPlayer(self.player_strategy[i], self.player_models[i], 'sorted', model_object= self.betting_model_objects[i]) for i in range(4)]
 
         # There's a human player, so we want to print
         if 0 in strategy_vector:
@@ -241,3 +241,9 @@ class Game:
         self.playRound()
         self.printVerbose(self.bets)
         return(self.getFinalScores(self.bets, self.T))
+    def getTricks(self):
+        tricks = [-1,-1,-1,-1]
+        for p in range(4):
+            tricks_p = sum(self.T[t] ==p for t in range(13))
+            tricks[p] = tricks_p
+        return tricks
