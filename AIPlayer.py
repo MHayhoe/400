@@ -13,40 +13,33 @@ import keras
 from keras import backend as K
 import numpy as np
 import heuristicAI as hai
+from Loss import get_loss_bet, loss_bet
 import os
-
-def loss_bet(y_true, y_pred):
-    return K.mean(y_true + K.sign(y_pred - y_true) * y_pred)
-
-# Returns our custom loss function
-def get_loss_bet():
-    # Our custom loss function: if we make our bet (y_true >= y_pred), the loss
-    # is the amount we could have gotten if we'd bet y_true, i.e., it's
-    # y_true - y_pred. If we didn't make our bet, then our loss is what we
-    # could have gotten minus what we lost, i.e., y_true + y_pred
-    # (since -1*(-bet) = bet)
-    return loss_bet
 
 class AIPlayer:
     # Constructor
-    def __init__(self, strategy,bettype, datatype, model_object=None):
+    def __init__(self, strategy, bettype, datatype, bet_object=None, action_object=None):
         self.strategy = strategy;
         self.bettype = bettype
         self.datatype = datatype;
+        
         if self.bettype == 'model': #or self.bettype=='heuristic':
             if strategy==2 or strategy == 1:
-                if model_object is not None:
-                    self.betmodel = model_object
+                if bet_object is not None:
+                    self.betmodel = bet_object
                 else:
                     print ('loading greedy from AI Player')
                     self.betmodel = keras.models.load_model('./Models/Greedy_v_Greedy_bet_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
-            elif strategy==3:
-                if model_object is not None:
-                    self.betmodel = model_object
+            elif strategy==3 or strategy==4:
+                if bet_object is not None:
+                    self.betmodel = bet_object
                 else:
                     #self.betmodel = keras.models.load_model('./Models/Heuristic_v_Heuristic_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
                     self.betmodel = keras.models.load_model('./Models/Heuristic_v_Greedy_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
-
+        
+        if self.strategy == 4:
+            self.action_model = action_object
+        
         elif self.bettype=='heuristic':
             pass
         else:
@@ -59,9 +52,22 @@ class AIPlayer:
 
 
     # ----- Get Action -----
-    def get_action(self, state,actions):
-        feasible_actions=actions;
-        return self.actionmodel(state,feasible_actions)
+    # Returns the index of the selected action, from the list of Cards 'actions'
+    def get_action(self, state, actions):
+        if self.strategy == 4: # Playing NN
+            values = self.action_model.predict(np.array([state + [a.value, a.suit] for a in actions]))
+            ind = np.argmax(values)
+        elif self.strategy == 3: # Simple heuristic
+            #valid_idx= heuristicChoice(p,valid_cards,card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by)
+            ind = hai.heuristicChoice(state)
+        elif self.strategy == 2: # Myopic Greedy: pick the highest playable card every time
+            # Sort the hand, so when we pick a valid card it will be the biggest valid card
+            ind = np.argmax(actions)
+        else: # Random choice
+            # Pick a valid card at random
+            ind = rnd.randint( 0, len(actions) - 1 )
+            
+        return ind
 
     # ----- Get Bet -----
     def get_bet(self, hand):

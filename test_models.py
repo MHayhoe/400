@@ -7,17 +7,57 @@ import keras
 import keras.layers as L
 import keras.regularizers as R
 import keras.models as M
+from Loss import get_loss_bet
 
 import matplotlib.pyplot as plt
 
-# Number of rounds of play to run
-num_tests = 100000           
+#--------------------------
+#  HELPER METHODS
+#--------------------------
 
-# Number of cards to give to each player, and number of tricks in each round
-n = 13;
+# To track the loss for each batch during training of a model
+class batch_loss_history(keras.callbacks.Callback):
+    def on_train_begin(self, logs={}):
+        self.losses = []
+    def on_batch_end(self, batch, logs={}):
+        self.losses.append(logs.get('loss'))
+
+def plot_bet_performance():
+    plt.figure(2)
+    # Loss value
+    plt.subplot(411)
+    plt.plot(Bet_Model_History)
+    plt.title('Average Loss')
+    # Scores
+    plt.subplot(412)
+    plt.plot(Average_Scores)
+    plt.title('Average Score')
+    
+    plt.subplot(413)
+    bins = range(14);
+    # Histogram of tricks
+    plt.hist([Tricks[i][0] for i in range(-1000,0)], bins, alpha=0.5, label='Tricks')
+    # Histogram of recent bets
+    plt.hist([Bets[i][0] for i in range(-1000,0)], bins, alpha=0.5, label='Bets')
+    plt.legend(loc='upper right')
+    plt.title('Player 1\'s Bets & Tricks')
+    
+    plt.subplot(414)
+    bins = range(-14,14)
+    plt.hist([Tricks[i][0] - Bets[i][0] for i in range(-1000,0)], bins)
+    plt.title('Player 1\'s Trick - Bet')
+    
+    plt.show()
+
+
+#--------------------------
+#  INITIALIZATION
+#--------------------------
+ # Number of rounds of play to run
+num_tests = 10000           
 
 # Interval at which to train
-train_interval = num_tests/100;
+train_interval = num_tests/10;
 # Offset of training for betting and playing
 train_offset = train_interval/2;
 
@@ -28,11 +68,15 @@ wins_team1 = 0.0
 wins_team2 = 0.0
 ties = 0.0
 
-#--------------------------
-#  INITIALIZATION
-#--------------------------
+# Number of cards to give to each player, and number of tricks in each round
+n = 13;
+
+# Discount factor for the reward
+gamma = 0.9
+
 # Strategies that each player should use to play
-strategies = [3,3,3,3]
+strategies = [4,2,4,2]
+bet_strategies = ['model','heuristic','model','heuristic']
 
 # For saving the game state after each game
 Hands = []
@@ -46,25 +90,6 @@ Bet_Model_History = []
 Play_Model_History = []
 Average_Scores = []
 
-# Returns our custom loss function
-def get_loss_bet():
-    return loss_bet
-
-# Our custom loss function: if we make our bet (y_true >= y_pred), the loss
-# is the amount we could have gotten if we'd bet y_true, i.e., it's
-# y_true - y_pred. If we didn't make our bet, then our loss is what we
-# could have gotten minus what we lost, i.e., y_true + y_pred
-# (since -1*(-bet) = bet)
-def loss_bet(y_true, y_pred):
-    #return K.square(y_true - y_pred)
-    return K.square(y_true + K.sign(y_pred - y_true) * y_pred)
-
-# To track the loss for each batch during training of a model
-class batch_loss_history(keras.callbacks.Callback):
-    def on_train_begin(self, logs={}):
-        self.losses = []
-    def on_batch_end(self, batch, logs={}):
-        self.losses.append(logs.get('loss'))
 
 ### Initialize the betting NN model
 #bet_model = Sequential()
@@ -112,19 +137,33 @@ num_epochs = 20
 # Compile the model
 bet_model.compile(loss=get_loss_bet(), optimizer=sgd, metrics=['mean_absolute_error',get_loss_bet()])
 
-x_train = []
-y_train = []
+
+# Initialize the playing NN
+input_a = L.Input(shape = (62,))
+a = L.LeakyReLU()(input_a)
+output_a = L.Dense(1, activation='sigmoid', use_bias=False, kernel_regularizer=R.l2(reg))(a)
+
+action_model = M.Model(inputs=input_a, outputs=output_a)
+action_model.summary()
+
+action_model.compile(loss='mean_squared_error', optimizer=sgd, metrics=['mean_absolute_error'])
 
 #--------------------------
 #  PLAY AND TRAIN
 #--------------------------
+x_train = []
+y_train = []
+
+x_train_RL = []
+y_train_RL = []
+
 # Play the game for num_tests rounds
 for t in range(1,num_tests+1):
     # Count 10,000's of rounds
     #if i % 10000 == 1:
     #print(t)
         
-    game = Game(n, strategies, ['model','heuristic','model','heuristic'], n, [bet_model for i in range(4)])
+    game = Game(n, strategies, bet_strategies, n, [action_model for i in range(4)], [bet_model for i in range(4)])
     scores = game.playGame()
     
     score_team1 = scores[0] + scores[2]
@@ -140,18 +179,15 @@ for t in range(1,num_tests+1):
     else:
         ties += 1
     
-    #x_train = np.array((n*2,4))
+    # Get the initial hands of each player
     init_hands = [game.initialHands[p] for p in range(4)]
-    
-    # Count the number of tricks each player won
-    tricks = [sum(game.T[t] == p for t in range(n)) for p in range(4)]
     
     # Save the data from the game
     Hands.append(game.initialHands)
     History.append(game.h)
     Bets.append(game.bets)
     Scores.append(scores)
-    Tricks.append(tricks)
+    Tricks.append(game.tricks)
     
     # Save the hands as training data for the betting NN
     for p in [0]:
@@ -164,14 +200,18 @@ for t in range(1,num_tests+1):
 #            x_binary[c.suit*4 + c.value] = 1
 #        x_train.append(x_binary)
         x_train.append( init_hands[p].get_cards_as_matrix() )
-        y_train.append(tricks[p])
+        y_train.append(game.tricks[p])
+    
+    # Save the game state as training data for the playing NN
+    for rd in range(n):
+        x_train_RL.append(game.action_state(rd) + [game.h[rd][0].value, game.h[rd][0].suit])
+        y_train_RL.append(gamma**(n - 1 - rd) * scores[0])
     
     # Train the betting NN
     if t % train_interval == 0:
         print 'Training betting...'
         hist = batch_loss_history()
         bet_model.fit(np.array(x_train), np.array(y_train), batch_size=batchsize, epochs = num_epochs, verbose=0, callbacks=[hist])
-        print 'Done.'
         
         # --- Record the performance ---
         training_range = range(int(t/train_interval - 1)*train_interval,int(t/train_interval)*train_interval)
@@ -180,19 +220,23 @@ for t in range(1,num_tests+1):
         # 2. Average score when using the previous strategy
         Average_Scores.append([sum([Scores[i][p] for i in training_range])/train_interval for p in range(4)])
     
+        # Plot the betting NN's performance
+        plot_bet_performance()
+        
+        print 'Done.'
+    
         x_train = []
         y_train = []
         
-        plt.figure(2)
-        plt.plot(Bet_Model_History)
-
-        plt.figure(3)
-        plt.plot(Average_Scores)
-        
-        plt.show()
     # Train the playing NN
     elif (t + train_offset) % train_interval == 0:
-        print 'Training strategies PLACEHOLDER'
+        print 'Training strategies...'
+        action_model.fit(np.array(x_train_RL), np.array(y_train_RL), batch_size=batchsize, epochs = num_epochs, verbose=0)
+        
+        print 'Done.'
+        
+        x_train_RL = []
+        y_train_RL = []
 
 Total_Scores = [sum([Scores[i][p] for i in range(num_tests)]) for p in range(4)]
 

@@ -22,14 +22,15 @@ import numpy as np
 
 class Game:
     #hack - fix later! importing betmodel in game object
-    def __init__(self, num_rounds,strategy_vector, model_vector, n=13, betting_model_objects = [None, None, None, None]):
+    def __init__(self, num_rounds, strategy_vector, bet_vector, n=13, action_model_objects=[None, None, None, None], bet_model_objects = [None, None, None, None]):
         # type: (object, object, object) -> object
         self.num_rounds = num_rounds;
-        self.player_strategy=strategy_vector;
-        self.player_models =model_vector;
+        self.player_strategy = strategy_vector;
+        self.bet_strategy = bet_vector;
         self.n = n;
-        self.betting_model_objects = betting_model_objects
-        self.aiplayers = [AIPlayer(self.player_strategy[i], self.player_models[i], 'sorted', model_object= self.betting_model_objects[i]) for i in range(4)]
+        #self.bet_models = betting_model_objects
+        #self.action_models = 
+        self.aiplayers = [AIPlayer(self.player_strategy[i], self.bet_strategy[i], 'sorted', bet_model_objects[i], action_model_objects[i]) for i in range(4)]
 
         # There's a human player, so we want to print
         if 0 in strategy_vector:
@@ -102,19 +103,28 @@ class Game:
             
         return bet
     
+    # Returns the state in a form that's expected by the playing NN
+    def action_state(self, t):
+        state = [0 for i in range(self.n*4)]
+        for c in self.h[t]:
+            if c is not None:
+                state[c.value*c.suit] = self.card_played_by[str(c)] + 1
+        [state.append(b) for b in self.bets]
+        [state.append(b) for b in self.tricks]
+        
+        return state
+    
     # To handle AI decisions for player p
-    def aiInput(self, p, strategy,valid_cards, card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by):
-        if strategy == 3: #simple heuristic
-            valid_idx= heuristicChoice(p,valid_cards,card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by)
-            return self.H[p].play( self.H[p].validToRealIndex(valid_idx) )
-        if strategy == 2: # Myopic Greedy: pick the highest playable card every time
-            # Sort the hand, so when we pick a valid card it will be the biggest valid card
-            self.H[p].sort()
-            return self.H[p].play( self.H[p].validToRealIndex(0) );
-        else: # Random choice
-            # Pick a valid card at random
-            ind = rnd.randint( 0, len(self.H[p].validCards()) - 1 )
-            return self.H[p].play( self.H[p].validToRealIndex(ind) )
+    def aiInput(self, p, strategy, valid_cards, current_round, card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by):
+        if strategy == 3: # Simple heuristic
+            state = [valid_cards,card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by]
+        elif strategy == 4: # Playing NN
+            state = self.action_state(current_round)
+        else: # Don't need the state, e.g. random, greedy
+            state = []
+            
+        return self.H[p].play(self.H[p].validToRealIndex( self.aiplayers[p].get_action(state, valid_cards) ));
+
         
     #To handle AI bets for player p
     def aiBet(self, p, strategy=1):
@@ -162,8 +172,9 @@ class Game:
         self.H = [Hand(deck.deal(n)) for i in range(4)];
         # Make a separate object to save the initial hands
         self.initialHands = deepcopy(self.H);
-        self.h = [[0 for i in range(4)] for t in range(self.num_rounds)]
+        self.h = [[None for i in range(4)] for t in range(self.num_rounds)]
         self.T = [-1 for i in range(self.num_rounds)]
+        self.tricks = [0 for i in range(4)]
         
         # Initialize the bets to zero
         self.bets = [0 for i in range(4)];
@@ -177,9 +188,9 @@ class Game:
         self.initialbets = self.bets;
         
         # Initialize some state-dependent metrics to pass to AI
-        card_played_by = {card.__str__():None for card in Deck().cards}
-        suit_trumped_by = {i:set() for i in range(4)}
-        bet_deficits = list(self.bets)
+        self.card_played_by = {card.__str__():None for card in Deck().cards}
+        self.suit_trumped_by = {i:set() for i in range(4)}
+        self.bet_deficits = list(self.bets)
         
 
         
@@ -187,7 +198,7 @@ class Game:
         for t in range(0, self.num_rounds):
             # No lead suit yet
             Card.lead = -1;
-            cards_this_round = {i: None for i in range(4)}
+            self.cards_this_round = {i: None for i in range(4)}
             
             order = range(4);
             
@@ -203,7 +214,7 @@ class Game:
                 if self.player_strategy[p] == 0: # Ask for human input
                     self.h[t][p] = self.humanInput(p);
                 else:                   # Ask for AI input with strategy in player_strategy[p]
-                    self.h[t][p] = self.aiInput(p, self.player_strategy[p], self.H[p].validCards(),card_played_by,cards_this_round,suit_trumped_by,bet_deficits,card_played_by);
+                    self.h[t][p] = self.aiInput(p, self.player_strategy[p], self.H[p].validCards(), t, self.card_played_by,self.cards_this_round,self.suit_trumped_by,self.bet_deficits,self.card_played_by);
 
                 # Set the lead suit, if it hasn't been yet
                 if Card.lead == -1:
@@ -214,18 +225,19 @@ class Game:
                 self.printVerbose('')
                 
                 #update
-                cards_this_round[p] = self.h[t][p]
+                self.cards_this_round[p] = self.h[t][p]
                 #update the card_played_by dict
-                card_played_by[str(self.h[t][p])]=p
+                self.card_played_by[str(self.h[t][p])]=p
                 if Card.lead != -1 and Card.lead != Card.trump:
                     if self.h[t][p].suit == Card.trump:
-                        suit_trumped_by[Card.lead].add(p)
+                        self.suit_trumped_by[Card.lead].add(p)
 
             # Find the winning player from the cards played this round
             self.T[t] = self.winner(self.h[t]);
+            self.tricks[self.T[t]] = self.tricks[self.T[t]] + 1;
             self.printVerbose('Player ' + str(self.T[t] + 1) + ' won the trick.')
             #print bet_deficits[self.T[t]];
-            bet_deficits[self.T[t]] -= 1;
+            self.bet_deficits[self.T[t]] -= 1;
 
     def getFinalScores(self, bets, T):
         scores = [0,0,0,0];
