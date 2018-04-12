@@ -22,6 +22,7 @@ class AIPlayer:
         self.strategy = strategy;
         self.bettype = bettype
         self.datatype = datatype;
+        self.eps = 0.05
         
         if self.bettype == 'model': #or self.bettype=='heuristic':
             if strategy==2 or strategy == 1:
@@ -53,15 +54,17 @@ class AIPlayer:
 
     # ----- Get Action -----
     # Returns the index of the selected action, from the list of Cards 'actions'
-    def get_action(self, state, actions):
+    def get_action(self, n, p, state, actions):
         if self.strategy == 4: # Playing NN
-            values = self.action_model.predict(np.array([state + [a.value, a.suit] for a in actions]))
-            ind = np.argmax(values)
+            values = self.action_model.predict(np.array([state + a.as_action(n) for a in actions]))
+            # Take random action w.p. eps
+            if rnd.random() > self.eps:
+                ind = np.argmax(values)
+            else:
+                ind = rnd.randint( 0, len(actions) - 1 )
         elif self.strategy == 3: # Simple heuristic
-            #valid_idx= heuristicChoice(p,valid_cards,card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by)
-            ind = hai.heuristicChoice(state)
+            ind = hai.heuristicChoice(p,actions,state[0],state[1],state[2],state[3])
         elif self.strategy == 2: # Myopic Greedy: pick the highest playable card every time
-            # Sort the hand, so when we pick a valid card it will be the biggest valid card
             ind = np.argmax(actions)
         else: # Random choice
             # Pick a valid card at random

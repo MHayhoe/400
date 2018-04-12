@@ -36,9 +36,9 @@ def plot_bet_performance():
     plt.subplot(413)
     bins = range(14);
     # Histogram of tricks
-    plt.hist([Tricks[i][0] for i in range(-1000,0)], bins, alpha=0.5, label='Tricks')
+    plt.hist([Tricks[i][0] for i in range(-train_interval,0)], bins, alpha=0.5, label='Tricks')
     # Histogram of recent bets
-    plt.hist([Bets[i][0] for i in range(-1000,0)], bins, alpha=0.5, label='Bets')
+    plt.hist([Bets[i][0] for i in range(-train_interval,0)], bins, alpha=0.5, label='Bets')
     plt.legend(loc='upper right')
     plt.title('Player 1\'s Bets & Tricks')
     
@@ -46,6 +46,26 @@ def plot_bet_performance():
     bins = range(-14,14)
     plt.hist([Tricks[i][0] - Bets[i][0] for i in range(-1000,0)], bins)
     plt.title('Player 1\'s Trick - Bet')
+    
+    plt.show()
+    
+def plot_action_performance():
+    plt.figure(3)
+    bins = range(14);
+    # Histogram of tricks
+    plt.subplot(211)
+    plt.hist([Tricks[i][0] for i in range(-train_interval/2,0)], bins, alpha=0.5, label='1')
+    plt.hist([Tricks[i][2] for i in range(-train_interval/2,0)], bins, alpha=0.5, label='3')
+    plt.legend(loc='upper right')
+    plt.title('Tricks for Team 1')
+    
+    plt.subplot(212)
+    plt.hist([Tricks[i][1] for i in range(-train_interval/2,0)], bins, alpha=0.5, label='2')
+    plt.hist([Tricks[i][3] for i in range(-train_interval/2,0)], bins, alpha=0.5, label='4')
+    plt.legend(loc='upper right')
+    plt.title('Tricks for Team 2')
+    
+    print np.mean(np.array(Tricks)[-train_interval/2:-1],0)
     
     plt.show()
 
@@ -91,6 +111,14 @@ Play_Model_History = []
 Average_Scores = []
 
 
+# Initialize the NN optimizer and other parameters
+sgd = keras.optimizers.SGD(lr=.01,clipnorm=10.)
+opt = keras.optimizers.RMSprop(lr=.01,clipnorm=1.)
+batchsize = 128
+num_epochs = 20
+reg = 0.1
+
+
 ### Initialize the betting NN model
 #bet_model = Sequential()
 ##bet_model.add(L.Dense(10, input_shape=(4,13,1)))
@@ -107,8 +135,8 @@ Average_Scores = []
 #bet_model.add(L.Dense(1, activation='relu'))
 ##bet_model.summary()
 
-reg = 0.1
 
+# Initialize the betting NN
 input_layer = L.Input(shape = (4,13,1))
 xl = L.LeakyReLU()(input_layer)
 x = L.Conv2D(1, 1, activation='linear', use_bias=False, kernel_regularizer=R.l2(reg))(xl)
@@ -128,20 +156,14 @@ output_layer = L.Dense(1, activation='linear', use_bias = False)(x)
 bet_model = M.Model(inputs=input_layer, outputs=output_layer)
 bet_model.summary()
 
-# Initialize the NN optimizer and other parameters
-sgd = keras.optimizers.SGD(lr=.01,clipnorm=1000.)
-opt = keras.optimizers.RMSprop(lr=.01,clipnorm=1.)
-batchsize = 128
-num_epochs = 20
-
 # Compile the model
 bet_model.compile(loss=get_loss_bet(), optimizer=sgd, metrics=['mean_absolute_error',get_loss_bet()])
 
 
 # Initialize the playing NN
-input_a = L.Input(shape = (62,))
+input_a = L.Input(shape = (112,))
 a = L.LeakyReLU()(input_a)
-output_a = L.Dense(1, activation='sigmoid', use_bias=False, kernel_regularizer=R.l2(reg))(a)
+output_a = L.Dense(1, activation='linear', use_bias=False, kernel_regularizer=R.l2(reg))(a)
 
 action_model = M.Model(inputs=input_a, outputs=output_a)
 action_model.summary()
@@ -192,20 +214,13 @@ for t in range(1,num_tests+1):
     # Save the hands as training data for the betting NN
     for p in [0]:
         init_hands[p].sort()
-#        vals = [init_hands[p].cards[i].value for i in range(n)]
-#        suits = [init_hands[p].cards[i].suit for i in range(n)]
-#        x_train.append(vals + suits)
-#        x_binary = [0 for i in range(n*4)]
-#        for c in init_hands[p].cards:
-#            x_binary[c.suit*4 + c.value] = 1
-#        x_train.append(x_binary)
         x_train.append( init_hands[p].get_cards_as_matrix() )
         y_train.append(game.tricks[p])
     
     # Save the game state as training data for the playing NN
     for rd in range(n):
-        x_train_RL.append(game.action_state(rd) + [game.h[rd][0].value, game.h[rd][0].suit])
-        y_train_RL.append(gamma**(n - 1 - rd) * scores[0])
+        x_train_RL.append(game.action_state(0,rd) + game.h[rd][0].as_action(n))
+        y_train_RL.append(gamma**(n - 1 - rd)*(scores[0] + scores[2]))
     
     # Train the betting NN
     if t % train_interval == 0:
@@ -233,17 +248,11 @@ for t in range(1,num_tests+1):
         print 'Training strategies...'
         action_model.fit(np.array(x_train_RL), np.array(y_train_RL), batch_size=batchsize, epochs = num_epochs, verbose=0)
         
+        plot_action_performance()
+        
         print 'Done.'
         
         x_train_RL = []
         y_train_RL = []
 
 Total_Scores = [sum([Scores[i][p] for i in range(num_tests)]) for p in range(4)]
-
-#Tricks = np.array(Tricks)
-#Bets = np.array(Bets)
-#Scores = np.array(Scores)
-#diff = [Tricks[i,0] - Bets[i,0] for i in range(num_tests)]
-#plt.figure(1)
-#plt.plot(diff)
-#plt.plot([Scores[i,0] for i in range(num_tests)])

@@ -104,26 +104,29 @@ class Game:
         return bet
     
     # Returns the state in a form that's expected by the playing NN
-    def action_state(self, t):
+    def action_state(self, p, t):
         state = [0 for i in range(self.n*4)]
         for c in self.h[t]:
             if c is not None:
-                state[c.value*c.suit] = self.card_played_by[str(c)] + 1
-        [state.append(b) for b in self.bets]
-        [state.append(b) for b in self.tricks]
+                state[(c.value - 1) + self.n*c.suit - 1] = self.card_played_by[str(c)] + 1
+        
+        permute_bets = self.bets[p:] + self.bets[:p]
+        permute_tricks = self.tricks[p:] + self.tricks[:p]
+        [state.append(b) for b in permute_bets]
+        [state.append(b) for b in permute_tricks]
         
         return state
     
     # To handle AI decisions for player p
-    def aiInput(self, p, strategy, valid_cards, current_round, card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by):
+    def aiInput(self, p, current_round, strategy, valid_cards):
         if strategy == 3: # Simple heuristic
-            state = [valid_cards,card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by]
+            state = [self.card_played_by,self.cards_this_round,self.suit_trumped_by,self.bet_deficits]
         elif strategy == 4: # Playing NN
-            state = self.action_state(current_round)
+            state = self.action_state(p, current_round)
         else: # Don't need the state, e.g. random, greedy
             state = []
             
-        return self.H[p].play(self.H[p].validToRealIndex( self.aiplayers[p].get_action(state, valid_cards) ));
+        return self.H[p].play(self.H[p].validToRealIndex( self.aiplayers[p].get_action(self.n, p, state, valid_cards) ));
 
         
     #To handle AI bets for player p
@@ -214,7 +217,7 @@ class Game:
                 if self.player_strategy[p] == 0: # Ask for human input
                     self.h[t][p] = self.humanInput(p);
                 else:                   # Ask for AI input with strategy in player_strategy[p]
-                    self.h[t][p] = self.aiInput(p, self.player_strategy[p], self.H[p].validCards(), t, self.card_played_by,self.cards_this_round,self.suit_trumped_by,self.bet_deficits,self.card_played_by);
+                    self.h[t][p] = self.aiInput(p, t, self.player_strategy[p], self.H[p].validCards());
 
                 # Set the lead suit, if it hasn't been yet
                 if Card.lead == -1:
