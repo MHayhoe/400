@@ -11,15 +11,12 @@ from pprint import pprint
 
 
 import random as rnd
-<<<<<<< HEAD
-def heuristicChoice(p,valid_cards, card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by,position):
-=======
-def heuristicChoice(p,valid_cards, cards_played_by,cards_this_round,suit_trumped_by,bet_deficits):
->>>>>>> d179ac0f2248386c5c2a3a17e9212b790dcdb127
+
+def heuristicChoice(p,position,valid_cards, cards_played_by,cards_this_round,suit_trumped_by,bet_deficits):
     #print cards_this_round
     #determine position of player
     #pos = determine_position(p,cards_this_round)
-    pos = position
+    pos = position + 1
     #print pos
     #get partner player index
     partner = (p+2)%4

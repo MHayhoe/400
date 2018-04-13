@@ -56,11 +56,17 @@ class AIPlayer:
     # Returns the index of the selected action, from the list of Cards 'actions'
     def get_action(self, n, p, state, actions):
         if self.strategy == 4: # Playing NN
-            data = {'order':[], 'players':[], 'bets':[], 'tricks':[], 'action':[]}
+            data = {'order':[], 'players':[], 'bets':[], 'tricks':[]}
             for a in actions:
-                state.update({'action':a.as_action(n)})
+                # Build the potential state after the action is taken
+                state['order'][0,a.suit*n + a.value - 2] = max(state['order'][0]) + 1
+                state['players'][0,a.suit*n + a.value - 2] = p
+                # Add to the list
                 for key in state:
                     data[key].append(state[key])
+                # Remove the potential state
+                state['order'][0,a.suit*n + a.value - 2] = 0
+                state['players'][0,a.suit*n + a.value - 2] = 0
                     
             for key in data:
                 data[key] = np.asarray(data[key])
@@ -71,7 +77,7 @@ class AIPlayer:
             else:
                 ind = rnd.randint( 0, len(actions) - 1 )
         elif self.strategy == 3: # Simple heuristic
-            ind = hai.heuristicChoice(p,actions,state[0],state[1],state[2],state[3])
+            ind = hai.heuristicChoice(p,state[0],actions,state[1],state[2],state[3],state[4])
         elif self.strategy == 2: # Myopic Greedy: pick the highest playable card every time
             ind = np.argmax(actions)
         else: # Random choice
@@ -85,7 +91,7 @@ class AIPlayer:
         #print self.datatype
         #print self.get_cards(hand)
         if self.bettype == 'model': #or self.bettype=='heuristic':
-            model_bet = self.betmodel.predict(np.array([self.get_cards(hand)]))[0][0]
+            model_bet = self.betmodel.predict(np.reshape(hand.get_cards_as_matrix(),(1,4,13,1)))
             #model_bet = self.betmodel.predict(np.reshape(hand.get_cards_as_matrix(),(1,4,13,1)))[0][0]
             #print model_bet
             bet = max(min(13, round(model_bet)), 2)

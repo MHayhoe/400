@@ -103,11 +103,12 @@ class Game:
         return bet
     
     # Returns the state in a form that's expected by the playing NN
-    def action_state(self, p, current_round):
+    def action_state(self, player, current_round):
         count = 1;
         self.state['order'] = np.zeros((1,52));
         self.state['players'] = np.zeros((1,52));
         
+        # Loop through previous rounds
         for t in range(current_round):
             for p in self.play_order[t]:
                 c = self.h[t][p];
@@ -115,10 +116,20 @@ class Game:
                     self.state['order'][0,c.suit*self.n + c.value-2] = count;
                     count = count + 1;
                     self.state['players'][0,c.suit*self.n + c.value-2] = p;
+        
+        # Loop through current round, until 'player'
+        for p in self.play_order[current_round]:
+            if p == player:
+                break
+            c = self.h[current_round][p];
+            self.state['order'][0,c.suit*self.n + c.value-2] = count;
+            count = count + 1;
+            self.state['players'][0,c.suit*self.n + c.value-2] = p;
             
         self.state['tricks'] = np.reshape(self.tricks,(1,4));
         
         return self.state
+    
     
     # To handle AI decisions for player p
     #old def aiInput(self, p, strategy,valid_cards, card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by,position):
@@ -136,7 +147,7 @@ class Game:
           #  return self.H[p].play( self.H[p].validToRealIndex(ind) )
     def aiInput(self, p, current_round, strategy, valid_cards):
         if strategy == 3: # Simple heuristic
-            state = [self.card_played_by,self.cards_this_round,self.suit_trumped_by,self.bet_deficits]
+            state = [self.play_order[current_round].index(p),self.card_played_by,self.cards_this_round,self.suit_trumped_by,self.bet_deficits]
         elif strategy == 4: # Playing NN
             state = self.action_state(p, current_round)
         else: # Don't need the state, e.g. random, greedy
@@ -229,12 +240,7 @@ class Game:
                 self.play_order[t] = order[first_player:] + order[:first_player]
             
             # Loop through players
-<<<<<<< HEAD
             for p in self.play_order[t]:
-=======
-            for position in range(len(order)):
-                p = order[position]
->>>>>>> 8806c5adc984e35ad3856a91f98b50c9def467e8
                 if self.player_strategy[p] == 0: # Ask for human input
                     self.h[t][p] = self.humanInput(p);
                 else:                   # Ask for AI input with strategy in player_strategy[p]
