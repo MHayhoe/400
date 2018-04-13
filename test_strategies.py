@@ -3,7 +3,7 @@ import numpy as np
 import datetime as dt
 import os
 import copy
-num_tests = 100
+num_tests = 10000
 import keras
 from keras import backend as K
 
@@ -46,10 +46,10 @@ for p in range(4):
         if strategies[p] == 3:
             #print os.getcwd()
             #betting_model_objects[p] = keras.models.load_model('Models/Heuristic_v_Heuristic_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
-            betting_model_objects[p] = keras.models.load_model('Models/Heuristic_v_Greedy_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
+            betting_model_objects[p] = keras.models.load_model('Models/Heuristic_v_Greedy_bet_data_model_'+datatype+'_model.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
 
         elif strategies[p] == 2:
-            betting_model_objects[p] = keras.models.load_model('Models/Greedy_v_Heuristic_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
+            betting_model_objects[p] = keras.models.load_model('Models/Greedy_v_Heuristic_bet_data_model_'+datatype+'_model.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
 print betting_model_objects
 #games = [Game(13, strategies) for i in range(num_tests)]
 for i in range(num_tests):
@@ -60,7 +60,9 @@ for i in range(num_tests):
     #game = games[i]
     scores = game.playGame()
     tricks = game.getTricks()
-    print game.initialbets
+    #print game.initialbets
+    #print tricks
+    #print scores
     #print(scores)
     odd_score = scores[1]+scores[3]
     even_score = scores[0]+scores[2]

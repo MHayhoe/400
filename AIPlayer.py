@@ -77,7 +77,6 @@ class AIPlayer:
         else: # Random choice
             # Pick a valid card at random
             ind = rnd.randint( 0, len(actions) - 1 )
-            
         return ind
 
     # ----- Get Bet -----
@@ -86,8 +85,8 @@ class AIPlayer:
         #print self.datatype
         #print self.get_cards(hand)
         if self.bettype == 'model': #or self.bettype=='heuristic':
-            #model_bet = self.betmodel.predict(np.array([self.get_cards(hand)]))[0][0]
-            model_bet = self.betmodel.predict(np.reshape(hand.get_cards_as_matrix(),(1,4,13,1)))[0][0]
+            model_bet = self.betmodel.predict(np.array([self.get_cards(hand)]))[0][0]
+            #model_bet = self.betmodel.predict(np.reshape(hand.get_cards_as_matrix(),(1,4,13,1)))[0][0]
             #print model_bet
             bet = max(min(13, round(model_bet)), 2)
             #print bet

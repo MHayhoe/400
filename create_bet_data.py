@@ -90,7 +90,9 @@ def create_bet_data(num_batches, batch_size, strategy_var, organization_var):
         nameString = './Data/'+gameTypeString+ '_bet_data_' + organization+'.csv'
     elif organization =='interleave_sorted':
         nameString ='./Data/'+gameTypeString+ '_bet_data_' + organization+'.csv'
-
+    elif organization == 'matrix':
+        x_size =52
+        nameString ='./Data/' + gameTypeString+'_bet_data_' + organization+'.csv'
     y_size = 1
 
     models = []
@@ -138,6 +140,7 @@ def create_bet_data(num_batches, batch_size, strategy_var, organization_var):
                 x_sorted = np.concatenate([vals_sorted,suits_sorted])
                 x_interleave = np.array([val for pair in zip(vals,suits) for val in pair]).astype(int)
                 x_interleave_sorted = np.array([val for pair in zip(vals_sorted,suits_sorted) for val in pair]).astype(int)
+                x_matrix = hand.get_cards_matrix_order();
                 if organization =='interleave sorted':
                     x_obs = x_interleave_sorted
                 elif organization == 'interleave':
@@ -146,6 +149,8 @@ def create_bet_data(num_batches, batch_size, strategy_var, organization_var):
                     x_obs = x_binary.astype(int)
                 elif organization=='sorted':
                     x_obs = x_sorted
+                elif organization =='matrix':
+                    x_obs  = x_matrix.flatten()
                 y_obs = tricks
                 dataarray[num_learn_from*t+i,0:x_size] = x_obs
                 dataarray[num_learn_from*t+i, x_size:x_size+y_size] = y_obs

@@ -121,6 +121,19 @@ class Game:
         return self.state
     
     # To handle AI decisions for player p
+    #old def aiInput(self, p, strategy,valid_cards, card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by,position):
+        #if strategy == 3: #simple heuristic
+        #    valid_idx= heuristicChoice(p,valid_cards,card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by,position)
+            #print self.H[p].cards[self.H[p].validToRealIndex(valid_idx) ]
+        #    return self.H[p].play( self.H[p].validToRealIndex(valid_idx) )
+        #if strategy == 2: # Myopic Greedy: pick the highest playable card every time
+            # Sort the hand, so when we pick a valid card it will be the biggest valid card
+        #    self.H[p].sort()
+         #   return self.H[p].play( self.H[p].validToRealIndex(0) );
+        #else: # Random choice
+            # Pick a valid card at random
+         #   ind = rnd.randint( 0, len(self.H[p].validCards()) - 1 )
+          #  return self.H[p].play( self.H[p].validToRealIndex(ind) )
     def aiInput(self, p, current_round, strategy, valid_cards):
         if strategy == 3: # Simple heuristic
             state = [self.card_played_by,self.cards_this_round,self.suit_trumped_by,self.bet_deficits]
@@ -128,10 +141,9 @@ class Game:
             state = self.action_state(p, current_round)
         else: # Don't need the state, e.g. random, greedy
             state = []
-            
         return self.H[p].play(self.H[p].validToRealIndex( self.aiplayers[p].get_action(self.n, p, state, valid_cards) ));
 
-        
+
     #To handle AI bets for player p
     def aiBet(self, p, strategy=1):
         #print 'ai ' + str(p) +  ' is goign to bet ' +  str(self.aiplayers[p].get_bet(self.H[p]))
@@ -217,12 +229,18 @@ class Game:
                 self.play_order[t] = order[first_player:] + order[:first_player]
             
             # Loop through players
+<<<<<<< HEAD
             for p in self.play_order[t]:
+=======
+            for position in range(len(order)):
+                p = order[position]
+>>>>>>> 8806c5adc984e35ad3856a91f98b50c9def467e8
                 if self.player_strategy[p] == 0: # Ask for human input
                     self.h[t][p] = self.humanInput(p);
                 else:                   # Ask for AI input with strategy in player_strategy[p]
+                    #old: self.h[t][p] = self.aiInput(p, self.player_strategy[p], self.H[p].validCards(),card_played_by,cards_this_round,suit_trumped_by,bet_deficits,card_played_by,position+1);
+                    #print str(self.h[t][p])
                     self.h[t][p] = self.aiInput(p, t, self.player_strategy[p], self.H[p].validCards());
-
                 # Set the lead suit, if it hasn't been yet
                 if Card.lead == -1:
                     Card.lead = self.h[t][p].suit;
