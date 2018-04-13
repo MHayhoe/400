@@ -39,13 +39,13 @@ class AIPlayer:
                     self.betmodel = model_object
                 else:
                     print ('loading greedy from AI Player')
-                    self.betmodel = keras.models.load_model('./Models/Greedy_v_Greedy_bet_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
+                    self.betmodel = keras.models.load_model('./Models/Greedy_v_Greedy_bet_model_'+datatype+'_model.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
             elif strategy==3:
                 if model_object is not None:
                     self.betmodel = model_object
                 else:
                     #self.betmodel = keras.models.load_model('./Models/Heuristic_v_Heuristic_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
-                    self.betmodel = keras.models.load_model('./Models/Heuristic_v_Greedy_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
+                    self.betmodel = keras.models.load_model('./Models/Heuristic_v_Greedy_bet_data_model_'+datatype+'_model.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
 
         elif self.bettype=='heuristic':
             pass
@@ -61,6 +61,7 @@ class AIPlayer:
     # ----- Get Action -----
     def get_action(self, state,actions):
         feasible_actions=actions;
+        print 'get action method'
         return self.actionmodel(state,feasible_actions)
 
     # ----- Get Bet -----
@@ -69,8 +70,8 @@ class AIPlayer:
         #print self.datatype
         #print self.get_cards(hand)
         if self.bettype == 'model': #or self.bettype=='heuristic':
-            #model_bet = self.betmodel.predict(np.array([self.get_cards(hand)]))[0][0]
-            model_bet = self.betmodel.predict(np.reshape(hand.get_cards_as_matrix(),(1,4,13,1)))[0][0]
+            model_bet = self.betmodel.predict(np.array([self.get_cards(hand)]))[0][0]
+            #model_bet = self.betmodel.predict(np.reshape(hand.get_cards_as_matrix(),(1,4,13,1)))[0][0]
             #print model_bet
             bet = max(min(13, round(model_bet)), 2)
             #print bet
