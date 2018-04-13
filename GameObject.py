@@ -103,9 +103,10 @@ class Game:
         return bet
     
     # To handle AI decisions for player p
-    def aiInput(self, p, strategy,valid_cards, card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by):
+    def aiInput(self, p, strategy,valid_cards, card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by,position):
         if strategy == 3: #simple heuristic
-            valid_idx= heuristicChoice(p,valid_cards,card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by)
+            valid_idx= heuristicChoice(p,valid_cards,card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by,position)
+            #print self.H[p].cards[self.H[p].validToRealIndex(valid_idx) ]
             return self.H[p].play( self.H[p].validToRealIndex(valid_idx) )
         if strategy == 2: # Myopic Greedy: pick the highest playable card every time
             # Sort the hand, so when we pick a valid card it will be the biggest valid card
@@ -199,12 +200,13 @@ class Game:
                 order = order[first_player:] + order[:first_player]
             
             # Loop through players
-            for p in order:
+            for position in range(len(order)):
+                p = order[position]
                 if self.player_strategy[p] == 0: # Ask for human input
                     self.h[t][p] = self.humanInput(p);
                 else:                   # Ask for AI input with strategy in player_strategy[p]
-                    self.h[t][p] = self.aiInput(p, self.player_strategy[p], self.H[p].validCards(),card_played_by,cards_this_round,suit_trumped_by,bet_deficits,card_played_by);
-
+                    self.h[t][p] = self.aiInput(p, self.player_strategy[p], self.H[p].validCards(),card_played_by,cards_this_round,suit_trumped_by,bet_deficits,card_played_by,position+1);
+                    #print str(self.h[t][p])
                 # Set the lead suit, if it hasn't been yet
                 if Card.lead == -1:
                     Card.lead = self.h[t][p].suit;

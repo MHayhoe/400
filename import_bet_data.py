@@ -26,7 +26,10 @@ def split_bet_data(strategy_var, organization_var):
     with open(nameString + '.csv','r') as file:
         rdr = csv.reader(file, delimiter =',')
         for row in rdr:
-            xdata.append([float(i) for i in row[0:-1]])
+            x_obs = [float(i) for i in row[0:-1]]
+            if organization_var=='matrix':
+                x_obs = np.reshape(x_obs, (4, 13, 1))
+            xdata.append(x_obs)
             ydata.append(float(row[-1]))
 
     test_lim = int(np.round(len(xdata)*0.8))

@@ -11,10 +11,11 @@ from pprint import pprint
 
 
 import random as rnd
-def heuristicChoice(p,valid_cards, card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by):
+def heuristicChoice(p,valid_cards, card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by,position):
     #print cards_this_round
     #determine position of player
-    pos = determine_position(p,cards_this_round)
+    #pos = determine_position(p,cards_this_round)
+    pos = position
     #print pos
     #get partner player index
     partner = (p+2)%4
@@ -54,7 +55,6 @@ def heuristicChoice(p,valid_cards, card_played_by,cards_this_round,suit_trumped_
     
 # Pick a card to play
 def choose_card(p,pos,cur_max,valid_cards,winner, suitc,trumpc, throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
-
     if pos == 1:
         choice = move_first(p,cur_max, valid_cards,winner,suitc,trumpc, throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
     elif pos == 2:
