@@ -4,6 +4,7 @@ Created on Thu Mar 15 11:36:28 2018
 
 @author: Mikhail
 """
+import numpy as np
 
 class Card:
     # ----- CLASS VARIABLES -----
@@ -82,6 +83,11 @@ class Card:
             for i in range(2,15):
                 higher_cards.append(Card(i, self.trump))
         return higher_cards
+    
+    def as_action(self, n):
+        bin_card = [0 for i in range(n*4)]
+        bin_card[(self.value - 1) + self.suit*n - 1] = 1;
+        return np.reshape(bin_card,(1, n*4));
 
     # ----- COMPARISON METHODS -----
     # Test for card equality

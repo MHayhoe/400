@@ -13,40 +13,34 @@ import keras
 from keras import backend as K
 import numpy as np
 import heuristicAI as hai
+from Loss import get_loss_bet, loss_bet
 import os
-
-def loss_bet(y_true, y_pred):
-    return K.mean(y_true + K.sign(y_pred - y_true) * y_pred)
-
-# Returns our custom loss function
-def get_loss_bet():
-    # Our custom loss function: if we make our bet (y_true >= y_pred), the loss
-    # is the amount we could have gotten if we'd bet y_true, i.e., it's
-    # y_true - y_pred. If we didn't make our bet, then our loss is what we
-    # could have gotten minus what we lost, i.e., y_true + y_pred
-    # (since -1*(-bet) = bet)
-    return loss_bet
 
 class AIPlayer:
     # Constructor
-    def __init__(self, strategy,bettype, datatype, model_object=None):
+    def __init__(self, strategy, bettype, datatype, bet_object=None, action_object=None):
         self.strategy = strategy;
         self.bettype = bettype
         self.datatype = datatype;
+        self.eps = 0.05
+        
         if self.bettype == 'model': #or self.bettype=='heuristic':
             if strategy==2 or strategy == 1:
-                if model_object is not None:
-                    self.betmodel = model_object
+                if bet_object is not None:
+                    self.betmodel = bet_object
                 else:
                     print ('loading greedy from AI Player')
-                    self.betmodel = keras.models.load_model('./Models/Greedy_v_Greedy_bet_model_'+datatype+'_model.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
-            elif strategy==3:
-                if model_object is not None:
-                    self.betmodel = model_object
+                    self.betmodel = keras.models.load_model('./Models/Greedy_v_Greedy_bet_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
+            elif strategy==3 or strategy==4:
+                if bet_object is not None:
+                    self.betmodel = bet_object
                 else:
                     #self.betmodel = keras.models.load_model('./Models/Heuristic_v_Heuristic_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
-                    self.betmodel = keras.models.load_model('./Models/Heuristic_v_Greedy_bet_data_model_'+datatype+'_model.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
-
+                    self.betmodel = keras.models.load_model('./Models/Heuristic_v_Greedy_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
+        
+        if self.strategy == 4:
+            self.action_model = action_object
+        
         elif self.bettype=='heuristic':
             pass
         else:
@@ -59,10 +53,26 @@ class AIPlayer:
 
 
     # ----- Get Action -----
-    def get_action(self, state,actions):
-        feasible_actions=actions;
-        print 'get action method'
-        return self.actionmodel(state,feasible_actions)
+    # Returns the index of the selected action, from the list of Cards 'actions'
+    def get_action(self, n, p, state, actions):
+        if self.strategy == 4: # Playing NN
+            values = []
+            for a in actions:
+                data = [state[0], state[1], state[2], state[3], a.as_action(n)]
+                values.append(self.action_model.predict(data))
+            # Take random action w.p. eps
+            if rnd.random() > self.eps:
+                ind = np.argmax(values)
+            else:
+                ind = rnd.randint( 0, len(actions) - 1 )
+        elif self.strategy == 3: # Simple heuristic
+            ind = hai.heuristicChoice(p,actions,state[0],state[1],state[2],state[3])
+        elif self.strategy == 2: # Myopic Greedy: pick the highest playable card every time
+            ind = np.argmax(actions)
+        else: # Random choice
+            # Pick a valid card at random
+            ind = rnd.randint( 0, len(actions) - 1 )
+        return ind
 
     # ----- Get Bet -----
     def get_bet(self, hand):
@@ -78,7 +88,7 @@ class AIPlayer:
         elif self.bettype == 'heuristic':
             bet = hai.heuristicBet(hand)
         else:
-            bet = rnd.randint(2, 5)
+            bet = rnd.randint(2, 13)
         return bet
     
     #------ Get Cards ----

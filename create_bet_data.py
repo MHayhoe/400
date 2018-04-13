@@ -1,13 +1,11 @@
 import numpy as np
 import csv
 from GameObject import Game
-import numpy as np
 import pandas as pd
 import datetime as dt
 import copy
 import keras
 from keras import backend as K
-import numpy as np
 import heuristicAI as hai
 
 
