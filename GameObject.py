@@ -104,18 +104,26 @@ class Game:
         return bet
     
     # Returns the state in a form that's expected by the playing NN
-    def action_state(self, p, t):
-        state = [0 for i in range(self.n*4)]
-        for c in self.h[t]:
-            if c is not None:
-                state[(c.value - 1) + self.n*c.suit - 1] = self.card_played_by[str(c)] + 1
+    def action_state(self, p, current_round):
+        order_history = np.zeros((1,4,13,1))
+        player_history = np.zeros((1,4,13,1))
         
-        permute_bets = self.bets[p:] + self.bets[:p]
-        permute_tricks = self.tricks[p:] + self.tricks[:p]
-        [state.append(b) for b in permute_bets]
-        [state.append(b) for b in permute_tricks]
+        count = 1;
         
-        return state
+        for t in range(current_round):
+            for p in range(4):
+                c = self.h[t][p];
+                if c is not None:
+                    order_history[0,c.suit,c.value-2] = count;
+                    count = count + 1;
+                    player_history[0,c.suit,c.value-2] = p;
+        
+        #permute_bets = self.bets[p:] + self.bets[:p]
+        #permute_tricks = self.tricks[p:] + self.tricks[:p]
+        #[state.append(b) for b in permute_bets]
+        #[state.append(b) for b in permute_tricks]
+        
+        return [order_history, player_history, np.reshape(self.bets,(1,4)), np.reshape(self.tricks,(1,4))]
     
     # To handle AI decisions for player p
     def aiInput(self, p, current_round, strategy, valid_cards):

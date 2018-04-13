@@ -56,7 +56,10 @@ class AIPlayer:
     # Returns the index of the selected action, from the list of Cards 'actions'
     def get_action(self, n, p, state, actions):
         if self.strategy == 4: # Playing NN
-            values = self.action_model.predict(np.array([state + a.as_action(n) for a in actions]))
+            values = []
+            for a in actions:
+                data = [state[0], state[1], state[2], state[3], a.as_action(n)]
+                values.append(self.action_model.predict(data))
             # Take random action w.p. eps
             if rnd.random() > self.eps:
                 ind = np.argmax(values)
