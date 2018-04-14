@@ -103,3 +103,5 @@ class AIPlayer:
             return hand.get_cards_as_interleave_sorted()
         elif self.datatype=='standard':
             return hand.get_cards_as_val_suit()
+        elif self.datatype=='matrix':
+            return hand.get_cards_as_matrix()

@@ -3,7 +3,7 @@ import numpy as np
 import datetime as dt
 import os
 import copy
-num_tests = 10000
+num_tests = 1000
 import keras
 from keras import backend as K
 
@@ -26,7 +26,7 @@ History = []
 Bets = []
 Scores = []
 Tricks = []
-datatype='sorted'
+datatype='matrix'
 def loss_bet(y_true, y_pred):
     return K.mean(y_true + K.sign(y_pred - y_true) * y_pred)
 
@@ -56,7 +56,7 @@ for i in range(num_tests):
     #print i
     #if i% 10000 ==1:
      #   print i
-    game = Game(13, strategies, model_vector, betting_model_objects=betting_model_objects)
+    game = Game(13, strategies, model_vector, bet_model_objects=betting_model_objects)
     #game = games[i]
     scores = game.playGame()
     tricks = game.getTricks()

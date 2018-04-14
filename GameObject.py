@@ -30,7 +30,7 @@ class Game:
         self.n = n;
         #self.bet_models = betting_model_objects
         #self.action_models = 
-        self.aiplayers = [AIPlayer(self.player_strategy[i], self.bet_strategy[i], 'sorted', bet_model_objects[i], action_model_objects[i]) for i in range(4)]
+        self.aiplayers = [AIPlayer(self.player_strategy[i], self.bet_strategy[i], 'matrix', bet_model_objects[i], action_model_objects[i]) for i in range(4)]
 
         # There's a human player, so we want to print
         if 0 in strategy_vector:
