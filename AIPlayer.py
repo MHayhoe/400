@@ -77,6 +77,7 @@ class AIPlayer:
             else:
                 ind = rnd.randint( 0, len(actions) - 1 )
         elif self.strategy == 3: # Simple heuristic
+            #print state
             ind = hai.heuristicChoice(p,state[0],actions,state[1],state[2],state[3],state[4])
         elif self.strategy == 2: # Myopic Greedy: pick the highest playable card every time
             ind = np.argmax(actions)
