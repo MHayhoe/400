@@ -6,6 +6,14 @@ Created on Thu Apr 12 11:29:52 2018
 @author: Mikhail
 """
 from keras import backend as K
+import keras
+
+# To track the loss for each batch during training of a model
+class batch_loss_history(keras.callbacks.Callback):
+    def on_train_begin(self, logs={}):
+        self.losses = []
+    def on_batch_end(self, batch, logs={}):
+        self.losses.append(logs.get('loss'))
 
 # Returns our custom loss function
 def get_loss_bet():

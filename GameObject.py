@@ -32,6 +32,11 @@ class Game:
         #self.action_models = 
         self.aiplayers = [AIPlayer(self.player_strategy[i], self.bet_strategy[i], 'matrix', bet_model_objects[i], action_model_objects[i]) for i in range(4)]
 
+        # For tracking the state for the playing NN
+        self.state = {'order': np.zeros((1,52)),'players': np.zeros((1,52))};
+        
+        self.play_order = [[] for i in range(num_rounds)]
+
         # There's a human player, so we want to print
         if 0 in strategy_vector:
             self.verbose = True;
@@ -50,12 +55,6 @@ class Game:
     deck = Deck();
     deck.shuffle();
 
-    # Deal 13 cards to each player
-    # H = [Hand(deck.deal(13)) for i in range(4)];
-    # initialHands = deepcopy(H);
-    # h = [[0 for i in range(4)] for t in range(num_rounds)]
-    # T = [-1 for i in range(num_rounds)]
-    # bets = [0 for i in range(4)]
 
     # ----- METHODS -----
     # To print a string, only if we want to be verbose
@@ -104,26 +103,33 @@ class Game:
         return bet
     
     # Returns the state in a form that's expected by the playing NN
-    def action_state(self, p, current_round):
-        order_history = np.zeros((1,4,13,1))
-        player_history = np.zeros((1,4,13,1))
-        
+    def action_state(self, player, current_round):
         count = 1;
+        self.state['order'] = np.zeros((1,52));
+        self.state['players'] = np.zeros((1,52));
         
+        # Loop through previous rounds
         for t in range(current_round):
-            for p in range(4):
+            for p in self.play_order[t]:
                 c = self.h[t][p];
                 if c is not None:
-                    order_history[0,c.suit,c.value-2] = count;
+                    self.state['order'][0,c.suit*self.n + c.value-2] = count;
                     count = count + 1;
-                    player_history[0,c.suit,c.value-2] = p;
+                    self.state['players'][0,c.suit*self.n + c.value-2] = p;
         
-        #permute_bets = self.bets[p:] + self.bets[:p]
-        #permute_tricks = self.tricks[p:] + self.tricks[:p]
-        #[state.append(b) for b in permute_bets]
-        #[state.append(b) for b in permute_tricks]
+        # Loop through current round, until 'player'
+        for p in self.play_order[current_round]:
+            if p == player:
+                break
+            c = self.h[current_round][p];
+            self.state['order'][0,c.suit*self.n + c.value-2] = count;
+            count = count + 1;
+            self.state['players'][0,c.suit*self.n + c.value-2] = p;
+            
+        self.state['tricks'] = np.reshape(self.tricks,(1,4));
         
-        return [order_history, player_history, np.reshape(self.bets,(1,4)), np.reshape(self.tricks,(1,4))]
+        return self.state
+    
     
     # To handle AI decisions for player p
     #old def aiInput(self, p, strategy,valid_cards, card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by,position):
@@ -141,7 +147,7 @@ class Game:
           #  return self.H[p].play( self.H[p].validToRealIndex(ind) )
     def aiInput(self, p, current_round, strategy, valid_cards):
         if strategy == 3: # Simple heuristic
-            state = [self.card_played_by,self.cards_this_round,self.suit_trumped_by,self.bet_deficits]
+            state = [self.play_order[current_round].index(p),self.card_played_by,self.cards_this_round,self.suit_trumped_by,self.bet_deficits]
         elif strategy == 4: # Playing NN
             state = self.action_state(p, current_round)
         else: # Don't need the state, e.g. random, greedy
@@ -210,12 +216,13 @@ class Game:
         self.bettingRound();
         self.initialbets = self.bets;
         
+        # Save the bets in the state
+        self.state['bets'] = np.reshape(self.bets,(1,4));
+        
         # Initialize some state-dependent metrics to pass to AI
         self.card_played_by = {card.__str__():None for card in Deck().cards}
         self.suit_trumped_by = {i:set() for i in range(4)}
         self.bet_deficits = list(self.bets)
-        
-
         
         # Go through the rounds
         for t in range(0, self.num_rounds):
@@ -227,14 +234,13 @@ class Game:
             
             # Permute player order
             if t > 0: # The previous winner should go first, then continue in order
-                order = order[self.T[t-1]:] + order[:self.T[t-1]]
+                self.play_order[t] = order[self.T[t-1]:] + order[:self.T[t-1]]
             else:   # Randomly choose who goes first
                 first_player = rnd.randint(0,3);
-                order = order[first_player:] + order[:first_player]
+                self.play_order[t] = order[first_player:] + order[:first_player]
             
             # Loop through players
-            for position in range(len(order)):
-                p = order[position]
+            for p in self.play_order[t]:
                 if self.player_strategy[p] == 0: # Ask for human input
                     self.h[t][p] = self.humanInput(p);
                 else:                   # Ask for AI input with strategy in player_strategy[p]

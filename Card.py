@@ -11,7 +11,7 @@ class Card:
     # lead:     current lead suit
     # trump:    current trump suit
     lead = -1; # default lead suit is none
-    trump = 2; # default trump suit is hearts
+    trump = 0; # default trump suit is clubs
     
     
     # ----- OBJECT VARIABLES -----
