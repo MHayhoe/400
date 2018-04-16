@@ -14,6 +14,7 @@ from keras import backend as K
 import numpy as np
 import heuristicAI as hai
 from Loss import get_loss_bet, loss_bet
+import geneticAI as gai
 import os
 
 class AIPlayer:
@@ -23,10 +24,9 @@ class AIPlayer:
         self.bettype = bettype
         self.datatype = datatype;
         self.eps = 0.05
+        self.genetic_parameters = genetic_parameters;
         
         if self.bettype == 'model': #or self.bettype=='heuristic':
-            if strategy==5:
-
             if strategy==2 or strategy == 1:
                 if bet_object is not None:
                     self.betmodel = bet_object
@@ -42,7 +42,8 @@ class AIPlayer:
         
         if self.strategy == 4:
             self.action_model = action_object
-        
+        if self.strategy == 5:
+            pass
         elif self.bettype=='heuristic':
             pass
         else:
@@ -57,23 +58,28 @@ class AIPlayer:
     # ----- Get Action -----
     # Returns the index of the selected action, from the list of Cards 'actions'
     def get_action(self, n, p, state, actions):
+        if self.strategy == 5:
+            pass
         if self.strategy == 4: # Playing NN
-            data = {'order':[], 'players':[], 'bets':[], 'tricks':[]}
-            for a in actions:
-                # Build the potential state after the action is taken
-                state['order'][0,a.suit*n + a.value - 2] = max(state['order'][0]) + 1
-                state['players'][0,a.suit*n + a.value - 2] = p
-                # Add to the list
-                for key in state:
-                    data[key].append(state[key])
-                # Remove the potential state
-                state['order'][0,a.suit*n + a.value - 2] = 0
-                state['players'][0,a.suit*n + a.value - 2] = 0
-                    
-            for key in data:
-                data[key] = np.asarray(data[key])
+            data = self.get_potential_state(n,p,state,actions)
+            # for key in state:
+            #     data[key] = []
+            # for a in actions:
+            #     # Build the potential state after the action is taken
+            #     state['order'][0,a.suit*n + a.value - 2] = max(state['order'][0]) + 1
+            #     state['players'][0,a.suit*n + a.value - 2] = p+1
+            #     # Add to the list
+            #     for key in state:
+            #         data[key].append(state[key])
+            #     # Remove the potential state
+            #     state['order'][0,a.suit*n + a.value - 2] = 0
+            #     state['players'][0,a.suit*n + a.value - 2] = 0
+            #
+            # for key in data:
+            #     data[key] = np.asarray(data[key])
+            # values = self.action_model.predict(data)
             values = self.action_model.predict(data)
-            # Take random action w.p. eps
+            # # Take random action w.p. eps
             if rnd.random() > self.eps:
                 ind = np.argmax(values)
             else:
@@ -101,6 +107,8 @@ class AIPlayer:
             #print bet
         elif self.bettype == 'heuristic':
             bet = hai.heuristicBet(hand)
+        elif self.bettype =='genetic':
+            bet = gai.geneticBet(hand, self.genetic_parameters[bet_params])
         else:
             bet = rnd.randint(2, 13)
         return bet
@@ -119,3 +127,21 @@ class AIPlayer:
             return hand.get_cards_as_val_suit()
         elif self.datatype=='matrix':
             return hand.get_cards_as_matrix()
+    def get_potential_state(self,n,p,state,actions):
+        data = {}
+        for key in state:
+            data[key] = []
+        for a in actions:
+            # Build the potential state after the action is taken
+            state['order'][0, a.suit * n + a.value - 2] = max(state['order'][0]) + 1
+            state['players'][0, a.suit * n + a.value - 2] = p + 1
+            # Add to the list
+            for key in state:
+                data[key].append(state[key])
+            # Remove the potential state
+            state['order'][0, a.suit * n + a.value - 2] = 0
+            state['players'][0, a.suit * n + a.value - 2] = 0
+
+        for key in data:
+            data[key] = np.asarray(data[key])
+        return data

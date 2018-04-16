@@ -1,0 +1,25 @@
+\subsection{Base Model}
+in order to evolutionarily optimize an AI, we must somehow parameterize the intuition discussed above. The frame work we will use is that the player's hand $\HH_i$, combined with the state (the cards played by others, the tricks and bets, etc.) has some value function. The value of a card is the difference between current hand-state value and the induced next hand-state value. (Notice that this is similar in setup to the DeepRL framework.) The AI will have several different modes: a 'help partner' mode and a 'help myself' mode.  
+
+A $k$-th order run-estimator $n_i^k(\HH_i)$ is defined as follows:
+\begin{align*}
+n_i^k({\HH}_i )= \sum_{n=1}^k\sum_ \alpha_j \prod_{l=1}^n \ind_{c_{j+n}}(\HH_i)
+\end{align*}
+ That is, an AI of order $k$ identifies conseqecutive runs of length up to $k$ and places some value on these runs. 
+ 
+The betting of such an 
+\begin{align*}
+b_i(\HH_i, b_{-i})=\beta_{i}V_i(\HH_i) + \sum_{j \neq i} \beta_{j} b_j
+\end{align*}
+\begin{algorithm}[htb]
+	\caption{Evolutionary Optimization }
+	\label{alg:movelast}
+	\begin{algorithmic}
+		\State Input: Lifespan $\ell$, generations $g$; 
+		\State Output: parameter of the optimal model
+		\State Initialize uniformly random 
+		\For{$t=1...g$}
+			
+		\EndFor 
+	\end{algorithmic}
+\end{algorithm} 

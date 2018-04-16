@@ -115,7 +115,7 @@ class Game:
                 if c is not None:
                     self.state['order'][0,c.suit*self.n + c.value-2] = count;
                     count = count + 1;
-                    self.state['players'][0,c.suit*self.n + c.value-2] = p;
+                    self.state['players'][0,c.suit*self.n + c.value-2] = p+1;
         
         # Loop through current round, until 'player'
         for p in self.play_order[current_round]:
@@ -124,7 +124,7 @@ class Game:
             c = self.h[current_round][p];
             self.state['order'][0,c.suit*self.n + c.value-2] = count;
             count = count + 1;
-            self.state['players'][0,c.suit*self.n + c.value-2] = p;
+            self.state['players'][0,c.suit*self.n + c.value-2] = p+1;
             
         self.state['tricks'] = np.reshape(self.tricks,(1,4));
         
