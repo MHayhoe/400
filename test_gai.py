@@ -15,7 +15,7 @@ wins_odd = 0
 total_tricks_even = 0
 total_tricks_odd = 0
 ties = 0
-strategies = [3,2,3,2]
+strategies = [5,5,5,5]
 
 #uncomment this block to switch to all greedy
 #strategies = [2,2,2,2]
@@ -27,36 +27,22 @@ Bets = []
 Scores = []
 Tricks = []
 datatype='matrix'
-def loss_bet(y_true, y_pred):
-    return K.mean(y_true + K.sign(y_pred - y_true) * y_pred)
 
-# Returns our custom loss function
-def get_loss_bet():
-    # Our custom loss function: if we make our bet (y_true >= y_pred), the loss
-    # is the amount we could have gotten if we'd bet y_true, i.e., it's
-    # y_true - y_pred. If we didn't make our bet, then our loss is what we
-    # could have gotten minus what we lost, i.e., y_true + y_pred
-    # (since -1*(-bet) = bet)
-    return loss_bet
+model_vector = ['genetic', 'genetic', 'genetic', 'genetic']
+genetic_parameters ={}
+genetic_parameters['bet_params'] = np.random.rand(52)
+genetic_parameters['state_params'] = {}
+genetic_parameters['prob_param']=1
+genetic_parameters['action_params'] = {}
+genetic_param_list = [genetic_parameters for i in range(4)]
 
-model_vector = ['model', 'model', 'model', 'model']
-betting_model_objects = [None, None, None, None]
-for p in range(4):
-    if model_vector[p] == 'model':
-        if strategies[p] == 3:
-            #print os.getcwd()
-            #betting_model_objects[p] = keras.models.load_model('Models/Heuristic_v_Heuristic_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
-            betting_model_objects[p] = keras.models.load_model('Models/Heuristic_v_Greedy_bet_data_model_'+datatype+'_model.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
 
-        elif strategies[p] == 2:
-            betting_model_objects[p] = keras.models.load_model('Models/Greedy_v_Heuristic_bet_data_model_'+datatype+'_model.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
-print betting_model_objects
 #games = [Game(13, strategies) for i in range(num_tests)]
 for i in range(num_tests):
     #print i
     #if i% 10000 ==1:
      #   print i
-    game = Game(13, strategies, model_vector, bet_model_objects=betting_model_objects)
+    game = Game(13, strategies, model_vector, genetic_parameter_list=genetic_param_list)
     #game = games[i]
     scores = game.playGame()
     tricks = game.getTricks()
@@ -90,6 +76,7 @@ for i in range(num_tests):
     #print Hands
     History.append(game.h)
     Bets.append(game.bets)
+    print Bets
     #Scores[i] = scores;
     Scores.append(scores)
     #print (Scores[i])
@@ -119,33 +106,3 @@ print 'Odd won ' + str(wins_odd*1.0/num_tests*100) + '% of games with a score of
 print 'There were ' + str(ties*1.0/num_tests*100) + '% of games tied'
 
 
-# it is probably better to just convert to data here...
-
-# num_rounds = len(hands)
-# x_data = [np.array([]) for t in range(num_rounds*4)]
-# y_data = [-1 for t in range(num_rounds*4)]
-# for t in range(num_rounds):
-#     if t=
-#     for p in range(4):
-#         vals = [0 for i in range(13)]
-#         suits = [0 for i in range(13)]
-#         for c in range(13):
-#             card = hands[t][p].cards[c]
-#             vals[c] = card.value
-#             suits[c] = card.suit
-#         x_obs = vals + suits
-#         y_obs = tricks[t][p]
-#         x_data[4*t+p] = x_obs
-#         y_data[4*t+p] = y_obs
-#
-# x_train = x_data[0:(int(num_rounds*.8))]
-# y_train = y_data[0:(int(num_rounds*.8))]
-# x_test = x_data[-(int(num_rounds*.8)+1):]
-# y_test = y_data[-(int(num_rounds*.8)+1):]
-#
-# nameString = 'tf_ve/Data/Greedy_v_Greedy_bet'
-# np.save(nameString + '_x_train', x_train )
-# np.save(nameString + '_y_train', y_train )
-# np.save(nameString + '_x_test', x_test)
-# np.save(nameString + '_y_test', y_test)
-#

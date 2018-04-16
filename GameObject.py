@@ -22,7 +22,7 @@ import numpy as np
 
 class Game:
     #hack - fix later! importing betmodel in game object
-    def __init__(self, num_rounds, strategy_vector, bet_vector, n=13, action_model_objects=[None, None, None, None], bet_model_objects = [None, None, None, None]):
+    def __init__(self, num_rounds, strategy_vector, bet_vector, n=13, action_model_objects=[None, None, None, None], bet_model_objects = [None, None, None, None],genetic_parameter_list=[None,None,None,None]):
         # type: (object, object, object) -> object
         self.num_rounds = num_rounds;
         self.player_strategy = strategy_vector;
@@ -30,7 +30,7 @@ class Game:
         self.n = n;
         #self.bet_models = betting_model_objects
         #self.action_models = 
-        self.aiplayers = [AIPlayer(self.player_strategy[i], self.bet_strategy[i], 'matrix', bet_model_objects[i], action_model_objects[i]) for i in range(4)]
+        self.aiplayers = [AIPlayer(self.player_strategy[i], self.bet_strategy[i], 'matrix', bet_model_objects[i], action_model_objects[i], genetic_parameter_list[i]) for i in range(4)]
 
         # For tracking the state for the playing NN
         self.state = {'order': np.zeros((1,52)),'players': np.zeros((1,52))};
@@ -149,6 +149,8 @@ class Game:
         if strategy == 3: # Simple heuristic
             state = [self.play_order[current_round].index(p),self.card_played_by,self.cards_this_round,self.suit_trumped_by,self.bet_deficits]
         elif strategy == 4: # Playing NN
+            state = self.action_state(p, current_round)
+        elif strategy == 5: #playing genetic
             state = self.action_state(p, current_round)
         else: # Don't need the state, e.g. random, greedy
             state = []

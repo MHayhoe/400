@@ -60,6 +60,8 @@ class AIPlayer:
     def get_action(self, n, p, state, actions):
         if self.strategy == 5:
             potential_states = self.get_potential_states(n, p, state, actions)
+            print len(potential_states)
+            print len(actions)
             #choose randomly with weights given by the genetic algorithm
             ind = gai.geneticChoice(n,p,state,actions,self.genetic_parameters, potential_states)
         if self.strategy == 4: # Playing NN
