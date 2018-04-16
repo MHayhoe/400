@@ -7,6 +7,7 @@ Created on Tue Mar 20 00:13 2018
 from Hand import Hand
 from Deck import Deck
 from Card import Card
+import numpy as np
 from pprint import pprint
 
 
@@ -272,11 +273,17 @@ def heuristicBet(hand):
 
 
 
-def genetic_choice(valid_cards, state, bet_params):
-    pass
+def geneticChoice(n,p,state, valid_cards, genetic_params,potential_states):
+    values = [calc_value(state,genetic_params) for state in potential_states]
+    min_val = min(values)
+    sum_val = sum(values)
+    weights = [(value + min_val)/(sum_val +len(values)*min_val) for value in values]
+    ind = np.random.choice(range(len(actions)), weights)
+    return ind
 def play_for_self(valid_cards,state,bet_params):
     return
 
 def play_for_team(valid_cards,state,bet_params):
     return
-
+def calc_value(state, genetic_params):
+    return

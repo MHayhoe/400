@@ -21,7 +21,7 @@ class AIPlayer:
     # Constructor
     def __init__(self, strategy, bettype, datatype, bet_object=None, action_object=None, genetic_parameters=None):
         self.strategy = strategy;
-        self.bettype = bettype
+        self.bettype = bettype;
         self.datatype = datatype;
         self.eps = 0.05
         self.genetic_parameters = genetic_parameters;
@@ -59,26 +59,12 @@ class AIPlayer:
     # Returns the index of the selected action, from the list of Cards 'actions'
     def get_action(self, n, p, state, actions):
         if self.strategy == 5:
-            pass
+            potential_states = self.get_potential_states(n, p, state, actions)
+            #choose randomly with weights given by the genetic algorithm
+            ind = gai.geneticChoice(n,p,state,actions,self.genetic_parameters, potential_states)
         if self.strategy == 4: # Playing NN
-            data = self.get_potential_state(n,p,state,actions)
-            # for key in state:
-            #     data[key] = []
-            # for a in actions:
-            #     # Build the potential state after the action is taken
-            #     state['order'][0,a.suit*n + a.value - 2] = max(state['order'][0]) + 1
-            #     state['players'][0,a.suit*n + a.value - 2] = p+1
-            #     # Add to the list
-            #     for key in state:
-            #         data[key].append(state[key])
-            #     # Remove the potential state
-            #     state['order'][0,a.suit*n + a.value - 2] = 0
-            #     state['players'][0,a.suit*n + a.value - 2] = 0
-            #
-            # for key in data:
-            #     data[key] = np.asarray(data[key])
-            # values = self.action_model.predict(data)
-            values = self.action_model.predict(data)
+            potential_states = self.get_potential_states(n, p, state, actions)
+            values = self.action_model.predict(potential_states)
             # # Take random action w.p. eps
             if rnd.random() > self.eps:
                 ind = np.argmax(values)
@@ -96,19 +82,13 @@ class AIPlayer:
 
     # ----- Get Bet -----
     def get_bet(self, hand):
-        #print hand
-        #print self.datatype
-        #print self.get_cards(hand)
         if self.bettype == 'model': #or self.bettype=='heuristic':
             model_bet = self.betmodel.predict(np.reshape(hand.get_cards_as_matrix(),(1,4,13,1)))
-            #model_bet = self.betmodel.predict(np.reshape(hand.get_cards_as_matrix(),(1,4,13,1)))[0][0]
-            #print model_bet
             bet = max(min(13, round(model_bet)), 2)
-            #print bet
         elif self.bettype == 'heuristic':
             bet = hai.heuristicBet(hand)
         elif self.bettype =='genetic':
-            bet = gai.geneticBet(hand, self.genetic_parameters[bet_params])
+            bet = gai.geneticBet(hand, self.genetic_parameters['bet_params'])
         else:
             bet = rnd.randint(2, 13)
         return bet
@@ -127,7 +107,7 @@ class AIPlayer:
             return hand.get_cards_as_val_suit()
         elif self.datatype=='matrix':
             return hand.get_cards_as_matrix()
-    def get_potential_state(self,n,p,state,actions):
+    def get_potential_states(self,n,p,state,actions):
         data = {}
         for key in state:
             data[key] = []
