@@ -37,7 +37,22 @@ def plot_bet_performance():
     
     plt.tight_layout()
     plt.show()
-  
+
+# For fixed bets, plots the histogram of actual tricks won
+def plot_bet_distributions(t_start, t_end):
+    plt.figure(4)
+    tricks_per_bet = np.zeros((14,14))
+    for t in range(t_start, t_end):
+        tricks_per_bet[int(Bets[t][0]), int(Tricks[t][0])] += 1
+    for j in range(2,14):
+        plt.subplot(4,4,j-1)
+        plt.plot(tricks_per_bet[j,:])
+        plt.plot([j,j],[0,max(tricks_per_bet[j,:])])
+        plt.title('Bet ' + str(j))
+    plt.tight_layout()
+    plt.show()
+        
+
 # Plots the performance of the playing NN since last training
 def plot_action_performance():
     plt.figure(3)
@@ -203,6 +218,7 @@ for t in range(1,num_tests+1):
     
         # Plot the betting NN's performance
         plot_bet_performance()
+        plot_bet_distributions(t- train_interval/2, t)
         
         print 'Done.'
     
