@@ -237,7 +237,7 @@ class Game:
             self.cards_this_round = {i: None for i in range(4)}
             
             # Save the current hands for history
-            self.H_history[t] = copy(self.H)
+            self.H_history[t] = deepcopy(self.H)
             
             order = range(4);
             

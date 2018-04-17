@@ -19,11 +19,11 @@ import os
 
 class AIPlayer:
     # Constructor
-    def __init__(self, strategy, bettype, datatype, bet_object=None, action_object=None, genetic_parameters=None):
+    def __init__(self, strategy, bettype, datatype, bet_object=None, action_object=None, genetic_parameters=None, eps=0.05):
         self.strategy = strategy;
         self.bettype = bettype;
         self.datatype = datatype;
-        self.eps = 0.05
+        self.eps = eps
         self.genetic_parameters = genetic_parameters;
         
         if self.bettype == 'model': #or self.bettype=='heuristic':
