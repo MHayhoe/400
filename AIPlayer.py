@@ -60,8 +60,6 @@ class AIPlayer:
     def get_action(self, n, p, state, actions):
         if self.strategy == 5:
             potential_states = self.get_potential_states(n, p, state, actions)
-            print len(potential_states)
-            print len(actions)
             #choose randomly with weights given by the genetic algorithm
             ind = gai.geneticChoice(n,p,state,actions,self.genetic_parameters, potential_states)
         if self.strategy == 4: # Playing NN
@@ -109,21 +107,39 @@ class AIPlayer:
             return hand.get_cards_as_val_suit()
         elif self.datatype=='matrix':
             return hand.get_cards_as_matrix()
+        
+    # Returns a dictionary, where each value is a numpy array of arrays
+    # corresponding to what the state would look like after an action was taken,
+    # for each action in the list actions.
     def get_potential_states(self,n,p,state,actions):
+        # Initialize an empty dictionary to empty lists
         data = {}
         for key in state:
             data[key] = []
+        # Check if we would be setting the lead suit
+        if state['lead'] == -1:
+            change_lead = True
+        else:
+            change_lead = False
+                
         for a in actions:
             # Build the potential state after the action is taken
             state['order'][0, a.suit * n + a.value - 2] = max(state['order'][0]) + 1
             state['players'][0, a.suit * n + a.value - 2] = p + 1
+            state['hand'][0, a.suit * n + a.value - 2] = 0
+            if change_lead:
+                state['lead'] = a.suit + 1
             # Add to the list
             for key in state:
                 data[key].append(state[key])
             # Remove the potential state
             state['order'][0, a.suit * n + a.value - 2] = 0
             state['players'][0, a.suit * n + a.value - 2] = 0
+            state['hand'][0, a.suit * n + a.value - 2] = 1
+            if change_lead:
+                state['lead'] = -1
 
         for key in data:
             data[key] = np.asarray(data[key])
+            
         return data

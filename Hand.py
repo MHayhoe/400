@@ -176,3 +176,9 @@ class Hand:
         for c in self.cards:
             binmat[c.suit, c.value-2] = 1
         return binmat
+    
+    def get_cards_binary(self,n):
+        binvec = np.zeros((1,52))
+        for c in self.cards:
+            binvec[0,c.suit*n + c.value - 2] = 1
+        return binvec

@@ -6,7 +6,7 @@ Created on Thu Mar 15 15:44:48 2018
 @author: Mikhail
 """
 import random as rnd
-from copy import deepcopy
+from copy import copy, deepcopy
 
 from Hand import Hand
 from Deck import Deck
@@ -115,7 +115,7 @@ class Game:
                 if c is not None:
                     self.state['order'][0,c.suit*self.n + c.value-2] = count;
                     count = count + 1;
-                    self.state['players'][0,c.suit*self.n + c.value-2] = p+1;
+                    self.state['players'][0,c.suit*self.n + c.value-2] = p + 1;
         
         # Loop through current round, until 'player'
         for p in self.play_order[current_round]:
@@ -124,9 +124,11 @@ class Game:
             c = self.h[current_round][p];
             self.state['order'][0,c.suit*self.n + c.value-2] = count;
             count = count + 1;
-            self.state['players'][0,c.suit*self.n + c.value-2] = p+1;
+            self.state['players'][0,c.suit*self.n + c.value-2] = p + 1;
             
+        self.state['hand'] = self.H_history[current_round][p].get_cards_binary(self.n)
         self.state['tricks'] = np.reshape(self.tricks,(1,4));
+        self.state['lead'] = self.leads[current_round]
         
         return self.state
     
@@ -201,11 +203,13 @@ class Game:
 
         # Deal n cards to each player
         self.H = [Hand(deck.deal(n)) for i in range(4)];
-        # Make a separate object to save the initial hands
+        # Make a separate list to save the initial hands
         self.initialHands = deepcopy(self.H);
+        self.H_history = [[[] for i in range(4)] for t in range(self.num_rounds)]
         self.h = [[None for i in range(4)] for t in range(self.num_rounds)]
         self.T = [-1 for i in range(self.num_rounds)]
         self.tricks = [0 for i in range(4)]
+        self.leads = [-1 for i in range(self.num_rounds)]
         
         # Initialize the bets to zero
         self.bets = [0 for i in range(4)];
@@ -232,6 +236,9 @@ class Game:
             Card.lead = -1;
             self.cards_this_round = {i: None for i in range(4)}
             
+            # Save the current hands for history
+            self.H_history[t] = copy(self.H)
+            
             order = range(4);
             
             # Permute player order
@@ -247,11 +254,11 @@ class Game:
                     self.h[t][p] = self.humanInput(p);
                 else:                   # Ask for AI input with strategy in player_strategy[p]
                     #old: self.h[t][p] = self.aiInput(p, self.player_strategy[p], self.H[p].validCards(),card_played_by,cards_this_round,suit_trumped_by,bet_deficits,card_played_by,position+1);
-                    #print str(self.h[t][p])
                     self.h[t][p] = self.aiInput(p, t, self.player_strategy[p], self.H[p].validCards());
                 # Set the lead suit, if it hasn't been yet
                 if Card.lead == -1:
                     Card.lead = self.h[t][p].suit;
+                    self.leads[t] = Card.lead;
 
                 # Display what was played
                 self.printVerbose(str(p + 1) + ':  ' + str(self.h[t][p]))
@@ -282,13 +289,17 @@ class Game:
             self.printVerbose('Player ' + str(p) + ' bet ' +str(bet_p) + ' and won ' +str(tricks_p) + ' for a total of ' + str(chg_score))
             scores[p]=chg_score
         return scores
+    
+    # Play the game. Call this method to run the game externally.
     def playGame(self):
         self.playRound()
         self.printVerbose(self.bets)
         return(self.getFinalScores(self.bets, self.T))
+        
     def getTricks(self):
-        tricks = [-1,-1,-1,-1]
-        for p in range(4):
-            tricks_p = sum(self.T[t] ==p for t in range(13))
-            tricks[p] = tricks_p
-        return tricks
+        return self.tricks
+#        tricks = [-1,-1,-1,-1]
+#        for p in range(4):
+#            tricks_p = sum(self.T[t] ==p for t in range(13))
+#            tricks[p] = tricks_p
+#        return tricks

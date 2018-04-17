@@ -1,20 +1,18 @@
-from GameObject import Game
 import numpy as np
+import datetime as dt
+import matplotlib.pyplot as plt
 
-#from keras import backend as K
 import keras
-#from keras.models import Sequential
 import keras.layers as L
 import keras.regularizers as R
 import keras.models as M
-from Loss import get_loss_bet, batch_loss_history
 
-import matplotlib.pyplot as plt
+from GameObject import Game
+from Loss import get_loss_bet, batch_loss_history
 
 #--------------------------
 #  HELPER METHODS
 #--------------------------
-
 def plot_bet_performance():
     plt.figure(2)
     # Loss value
@@ -56,6 +54,22 @@ def plot_action_performance():
     print np.mean(np.array(Tricks)[-train_interval/2:-1],0)
     
     plt.show()
+    
+def update_state(p, rd):
+    # Get the game state
+    state = game.action_state(p,rd)
+    # Get the action taken
+    a = game.h[rd][p]
+    # Update the state based on action taken
+    state['order'][0,a.suit*n + a.value - 2] = max(state['order'][0]) + 1
+    state['players'][0,a.suit*n + a.value - 2] = p + 1
+    state['hand'][0,a.suit*n + a.value - 2] = 0
+    
+    # If this would be the first play, update lead suit
+    if state['lead'] == -1:
+        state['lead'] = a.suit + 1
+    
+    return state
 
 
 #-------------------------------
@@ -83,8 +97,8 @@ n = 13;
 gamma = 0.9
 
 # Strategies that each player should use to play
-strategies = [4,3,4,3]
-bet_strategies = ['model','heuristic','model','heuristic']
+strategies = [4,4,4,4]
+bet_strategies = ['model','model','model','model']
 
 # For saving the game state after each game
 Hands = []
@@ -126,15 +140,15 @@ reg = 0.1
 
 # Initialize the betting NN
 input_layer = L.Input(shape = (4,13,1))
-xl = L.LeakyReLU()(input_layer)
-x = L.Conv2D(1, 1, activation='linear', use_bias=False, kernel_regularizer=R.l2(reg))(xl)
+xinp = L.LeakyReLU()(input_layer)
+x = L.Conv2D(1, 1, activation='linear', use_bias=False, kernel_regularizer=R.l2(reg))(xinp)
 x = L.BatchNormalization(axis=1)(x)
 x = L.LeakyReLU()(x)
 x = L.Conv2D(1, 1, activation='linear', use_bias=False, kernel_regularizer=R.l2(reg))(x)
 x = L.BatchNormalization(axis=1)(x)
-x = L.Add()([x, xl])
+x = L.Add()([x, xinp])
 x = L.LeakyReLU()(x)
-x = L.Conv2D(2, (1,4), activation='linear', use_bias=False, kernel_regularizer=R.l2(reg))(xl)
+x = L.Conv2D(2, (1,4), activation='linear', use_bias=False, kernel_regularizer=R.l2(reg))(xinp)
 x = L.BatchNormalization(axis=1)(x)
 x = L.LeakyReLU()(x)
 x = L.Flatten()(x)
@@ -150,8 +164,10 @@ bet_model.compile(loss=get_loss_bet(), optimizer=sgd, metrics=['mean_absolute_er
 # Initialize the playing NN branches
 input_order = L.Input(shape = (1,n*4), name='order')
 input_players = L.Input(shape = (1,n*4), name='players')
+input_hand = L.Input(shape = (1,n*4), name='hand')
 input_bets = L.Input(shape = (1,4), name='bets')
 input_tricks = L.Input(shape = (1,4), name='tricks')
+input_lead = L.Input(shape = (1,), name='lead')
 #input_action = L.Input(shape = (1,52), name='action')
 
 # Branch for the history of the order of played cards
@@ -168,9 +184,12 @@ xp = L.Conv2D(1, 1, activation='linear', use_bias=False, kernel_regularizer=R.l2
 xp = L.BatchNormalization(axis=1)(xp)
 xp = L.Flatten()(xp)
 
-# Add the CNN layers together and flatten them
-#acnn = L.Add()([xo, xp])
-#acnn = L.Flatten()(acnn)
+# Branch for the current player's hand
+xh = L.Reshape((4,13,1))(input_hand)
+xh = L.LeakyReLU()(xh)
+xh = L.Conv2D(1, 1, activation='linear', use_bias=False, kernel_regularizer=R.l2(reg))(xh)
+xh = L.BatchNormalization(axis=1)(xh)
+xh = L.Flatten()(xh)
 
 # Branch for the bets
 xb = L.LeakyReLU()(input_bets)
@@ -180,20 +199,16 @@ xb = L.Flatten()(xb)
 xt = L.LeakyReLU()(input_tricks)
 xt = L.Flatten()(xt)
 
-## Branch for the actions
-#xa = L.Reshape((4,13,1))(input_action)
-#xa = L.LeakyReLU()(xa)
-#xa = L.Conv2D(1, 1, activation='linear', use_bias=False, kernel_regularizer=R.l2(reg))(xa)
-#xa = L.BatchNormalization(axis=1)(xa)
-#xa = L.Flatten()(xa)
+# Branch for the lead suit
+xl = L.LeakyReLU()(input_lead)
 
 # Add all NN branches together
-a = L.Concatenate(axis=1)([xo, xp, xb, xt])
+a = L.Concatenate(axis=1)([xo, xp, xh, xb, xt, xl])
 a = L.LeakyReLU()(a)
 output_a = L.Dense(1, activation='linear', use_bias=False, kernel_regularizer=R.l2(reg))(a)
 
 # Compile the model
-action_model = M.Model(inputs=[input_order, input_players, input_bets, input_tricks], outputs=output_a)
+action_model = M.Model(inputs=[input_order, input_players, input_hand, input_bets, input_tricks, input_lead], outputs=output_a)
 action_model.compile(loss='mean_squared_error', optimizer=sgd, metrics=['mean_absolute_error'])
 #action_model.summary()
 
@@ -204,12 +219,12 @@ action_model.compile(loss='mean_squared_error', optimizer=sgd, metrics=['mean_ab
 # Initialize training data for NNs
 x_train = []
 y_train = []
-x_train_RL = {'order':[], 'players':[], 'bets':[], 'tricks':[], 'action':[]}
+x_train_RL = {'order':[], 'players':[], 'bets':[], 'tricks':[], 'hand':[], 'lead':[]}
 y_train_RL = []
 
 # Play the game for num_tests rounds
 for t in range(1,num_tests+1):
-    # Count 10,000's of rounds
+    # Count 100's of rounds
     if t % 100 == 0:
         print t
     
@@ -232,7 +247,7 @@ for t in range(1,num_tests+1):
         ties += 1
     
     # Get the initial hands of each player
-    init_hands = [game.initialHands[p] for p in range(4)]
+    init_hands = [game.H_history[0][p] for p in range(4)]
     
     # Save the data from the game
     Hands.append(game.initialHands)
@@ -241,7 +256,7 @@ for t in range(1,num_tests+1):
     Scores.append(scores)
     Tricks.append(game.tricks)
     
-    # Save all data for training
+    # Save data for training
     for p in [0]:
         # Save the hands as training data for the betting NN
         init_hands[p].sort()
@@ -250,32 +265,26 @@ for t in range(1,num_tests+1):
     
         # Save the game state as training data for the playing NN
         for rd in range(n):
-            # Get the game state
-            state = game.action_state(p,rd)
-            # Add the action that was taken
-            a = game.h[rd][p]
-            state['order'][0,a.suit*n + a.value - 2] = max(state['order'][0]) + 1
-            state['players'][0,a.suit*n + a.value - 2] = p
+            # Get and update the game state based on the action taken
+            state = update_state(p, rd)
             for key in state:
                 x_train_RL[key].append(state[key])
             # REWARD:
             my_team_score = int(game.T[rd]==p or game.T[rd]==((p+2)%4))
             discounted_reward = gamma**(n - 1 - rd)*(scores[p] + scores[(p+2)%4])
             #y_train_RL.append(discounted_reward + my_team_score)
-            y_train_RL.append(my_team_score)
+            y_train_RL.append(discounted_reward + my_team_score)
     
     # Train the betting NN
     if t % train_interval == 0:
         print 'Training betting...'
         hist = batch_loss_history()
-        bet_model.fit(np.array(x_train), np.array(y_train), batch_size=batchsize, epochs = num_epochs, verbose=0, callbacks=[hist])
+        bet_model.fit(np.asarray(x_train), np.asarray(y_train), batch_size=batchsize, epochs = num_epochs, verbose=0, callbacks=[hist])
         
         # --- Record the performance ---
         training_range = range(int(t/train_interval - 1)*train_interval,int(t/train_interval)*train_interval)
-        # 1. Average loss across all batches
-        Bet_Model_History.append( np.mean(hist.losses) )
-        # 2. Average score when using the previous strategy
-        Average_Scores.append([sum([Scores[i][p] for i in training_range])/train_interval for p in range(4)])
+        Bet_Model_History.append( np.mean(hist.losses) ) # Average loss across all batches
+        Average_Scores.append([sum([Scores[i][p] for i in training_range])/train_interval for p in range(4)]) # Average score when using the previous strategy
     
         # Plot the betting NN's performance
         plot_bet_performance()
@@ -292,6 +301,7 @@ for t in range(1,num_tests+1):
             x_train_RL[key] = np.asarray(x_train_RL[key])
         action_model.fit(x_train_RL, np.asarray(y_train_RL), batch_size=batchsize, epochs = num_epochs, verbose=0)
         
+        # Plot the playing NN's performance
         plot_action_performance()
         
         print 'Done.'
@@ -301,3 +311,10 @@ for t in range(1,num_tests+1):
         y_train_RL = []
 
 Total_Scores = [sum([Scores[i][p] for i in range(num_tests)]) for p in range(4)]
+
+# Save the final models
+tempTime = dt.datetime.now().time();
+timeString = str(dt.datetime.now().date()) + '-' + str(tempTime.hour) + '-' + str(tempTime.minute) + '-' + str(tempTime.second);
+action_model.save('./Models/action_' + t + '_' + timeString + '.h5')
+bet_model.save('./Models/bet_' + t + '_' + timeString + '.h5')
+
