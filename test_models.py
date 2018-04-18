@@ -129,7 +129,7 @@ Average_Scores = []
 
 # Save the current time
 tempTime = dt.datetime.now().time();
-timeString = str(dt.datetime.now().date()) + '-' + str(tempTime.hour) + '-' + str(tempTime.minute) + '-' + str(tempTime.second);
+timeString = str(dt.datetime.now().date())+'-'+str(tempTime.hour)+'-'+str(tempTime.minute)+'-'+str(tempTime.second);
 
 
 #----------------------------------
