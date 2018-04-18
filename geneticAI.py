@@ -21,6 +21,7 @@ def geneticBet(hand,bet_params):
 def geneticChoice(n,p,state, valid_cards, genetic_params,potential_states):
     value_summands = {}
     num_actions = len(valid_cards)
+
     for key in genetic_params['action_params'].keys():
         value_summands[key] = [potential_states[key][i] * genetic_params['action_params'][key] for i in range(num_actions)]
     values = [0 for i in range(num_actions)]
@@ -44,3 +45,5 @@ def calc_value(state, genetic_params):
     for key in state_params.keys():
         value += prob_param*np.dot(state_params[key],state[key])
     return value
+def calc_urgency(state,genetic_params):
+    pass

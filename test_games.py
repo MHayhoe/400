@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from Loss import loss_bet, get_loss_bet
 strategies = [3,4,3,4]
 # Number of full games to play
-num_games = 50
+num_games = 100
 wins_team1 = 0
 wins_team2 = 0
 datatype='matrix'
@@ -31,7 +31,10 @@ gvg = keras.models.load_model('Models/Greedy_v_Greedy_bet_data_model_' + datatyp
 timestr = '2018-04-17-21-14-15'
 
 n=13
+wins_team1 = [0 for i in range(10)]
+wins_team2 = [0 for i in range(10)]
 frac_won_by_nn = [0 for i in range(10)]
+
 for i in range(10):
     iterations = str((i+1)*10000)
     nn_action_model =keras.models.load_model('Models/action_' + timestr + '_'+str(iterations)+'.h5',  custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
@@ -52,21 +55,20 @@ for i in range(10):
                 Total_Scores[p] += scores[p]
 
             if (Total_Scores[0] >= 41 and Total_Scores[2] >= 0) or (Total_Scores[0] >= 0 and Total_Scores[2] >= 41):
-                   wins_team1 += 1
+                   wins_team1[i] += 1
                    #print 'Team 1 won'
                    break
             if (Total_Scores[1] >= 41 and Total_Scores[3] >= 0) or (Total_Scores[1] >= 0 and Total_Scores[3] >= 41):
-                   wins_team2 += 1
+                   wins_team2[i] += 1
                    #print 'Team 2 won'
                    break
 
         #print Total_Scores
-    print 'Team 1 won' + str( wins_team1)
-    print 'Team 2 won' + str(wins_team2)
-    frac_won_by_nn[i] = wins_team2/num_games
-    wins_team1 = 0
-    wins_team2 = 0
+    print 'Team 1 won' + str(wins_team1[i])
+    print 'Team 2 won' + str(wins_team2[i])
+    frac_won_by_nn[i] = wins_team2[i]*1.0/num_games
 print frac_won_by_nn
 plt.figure(2)
 plt.plot(frac_won_by_nn)
 plt.title('NN performance vs heuristic team')
+plt.savefig('Plots/nn.png')

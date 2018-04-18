@@ -34,6 +34,7 @@ genetic_parameters['bet_params'] = np.random.rand(52)
 genetic_parameters['state_params'] = {}
 genetic_parameters['prob_param']=1
 genetic_parameters['action_params'] = {}
+genetic_parameters['urgency_param'] = .5
 genetic_param_list = [genetic_parameters for i in range(4)]
 
 
