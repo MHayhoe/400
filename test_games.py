@@ -6,17 +6,46 @@ Created on Tue Apr 17 20:46:41 2018
 @author: Mikhail
 """
 from GameObject import Game
+import keras
+from keras import backend as K
 
+strategies = [3,2,3,2]
 # Number of full games to play
 num_games = 100
 wins_team1 = 0
 wins_team2 = 0
+datatype='matrix'
+def loss_bet(y_true, y_pred):
+    return K.mean(y_true + K.sign(y_pred - y_true) * y_pred)
 
+# Returns our custom loss function
+def get_loss_bet():
+    # Our custom loss function: if we make our bet (y_true >= y_pred), the loss
+    # is the amount we could have gotten if we'd bet y_true, i.e., it's
+    # y_true - y_pred. If we didn't make our bet, then our loss is what we
+    # could have gotten minus what we lost, i.e., y_true + y_pred
+    # (since -1*(-bet) = bet)
+    return loss_bet
+hvg = keras.models.load_model('Models/Heuristic_v_Heuristic_bet_data_model_' + datatype + '_model.h5',
+                                                   custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
+
+hvg = keras.models.load_model('Models/Heuristic_v_Greedy_bet_data_model_' + datatype + '_model.h5',
+                                                   custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
+gvh = keras.models.load_model('Models/Greedy_v_Heuristic_bet_data_model_' + datatype + '_model.h5',
+                                                   custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
+gvg = keras.models.load_model('Models/Greedy_v_Greedy_bet_data_model_' + datatype + '_model.h5',
+                                                   custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
+
+bet_models = [hvg, gvh,hvg,gvh]
+bet_strategies = ['model', 'model', 'model', 'model']
+n=13
+action_model = None
 for g in range(num_games):
     Total_Scores = [0 for p in range(4)]
     
     while True:
-        game = Game(n, strategies, bet_strategies, n, [action_model for i in range(4)], [bet_model for i in range(4)])
+        #game = Game(n, strategies, bet_strategies, n, [action_model for i in range(4)], [bet_model for i in range(4)])
+        game = Game(n, strategies, bet_strategies, n, [action_model for i in range(4)], bet_models)
         scores = game.playGame()
     
         for p in range(4):
@@ -32,3 +61,5 @@ for g in range(num_games):
                break
            
     print Total_Scores
+print 'Team 1 won' + str( wins_team1)
+print 'Team 2 won' + str(wins_team2)
