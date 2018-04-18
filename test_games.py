@@ -71,9 +71,9 @@ for i in range(10):
         #print Total_Scores
     print 'Team 1 won' + str( wins_team1)
     print 'Team 2 won' + str(wins_team2)
+    frac_won_by_nn[i] = wins_team2/num_games
     wins_team1 = 0
     wins_team2 = 0
-    frac_won_by_nn[i] = wins_team2/num_games
 print frac_won_by_nn
 plt.figure(2)
 plt.plot(frac_won_by_nn)
