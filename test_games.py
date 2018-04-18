@@ -8,6 +8,8 @@ Created on Tue Apr 17 20:46:41 2018
 from GameObject import Game
 import keras
 from keras import backend as K
+import numpy as np
+import matplotlib.pyplot as plt
 
 strategies = [3,4,3,4]
 # Number of full games to play
@@ -37,32 +39,40 @@ gvg = keras.models.load_model('Models/Greedy_v_Greedy_bet_data_model_' + datatyp
                                                    custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
 
 n=13
-nn_action_model =keras.models.load_model('Models/action_2018-04-17-17-58-35_100000.h5',  custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
-nn_bet_model = keras.models.load_model('Models/bet_2018-04-17-17-58-35_100000.h5', custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
-bet_strategies = ['model', 'model', 'model', 'model']
-bet_models = [hvh, nn_bet_model,hvh,nn_bet_model]
-action_models = [None, nn_action_model, None, nn_action_model]
+frac_won_by_nn = [0 for i in range(100)]
+for i in range(100):
+    iterations = str((i+1)*1000)
+    nn_action_model =keras.models.load_model('Models/action_2018-04-17-17-58-35_'+str(iterations)+'.h5',  custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
+    nn_bet_model = keras.models.load_model('Models/bet_2018-04-17-17-58-35_'+str(iterations)+'.h5', custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
+    bet_strategies = ['model', 'model', 'model', 'model']
+    bet_models = [hvh, nn_bet_model,hvh,nn_bet_model]
+    action_models = [None, nn_action_model, None, nn_action_model]
 
-for g in range(num_games):
-    Total_Scores = [0 for p in range(4)]
-    
-    while True:
-        #game = Game(n, strategies, bet_strategies, n, [action_model for i in range(4)], [bet_model for i in range(4)])
-        game = Game(n, strategies, bet_strategies, n, action_models, bet_models)
-        scores = game.playGame()
-    
-        for p in range(4):
-            Total_Scores[p] += scores[p]
-                        
-        if (Total_Scores[0] >= 41 and Total_Scores[2] >= 0) or (Total_Scores[0] >= 0 and Total_Scores[2] >= 41):
-               wins_team1 += 1
-               print 'Team 1 won'
-               break
-        if (Total_Scores[1] >= 41 and Total_Scores[3] >= 0) or (Total_Scores[1] >= 0 and Total_Scores[3] >= 41):
-               wins_team2 += 1
-               print 'Team 2 won'
-               break
-           
-    print Total_Scores
-print 'Team 1 won' + str( wins_team1)
-print 'Team 2 won' + str(wins_team2)
+    for g in range(num_games):
+        Total_Scores = [0 for p in range(4)]
+
+        while True:
+            #game = Game(n, strategies, bet_strategies, n, [action_model for i in range(4)], [bet_model for i in range(4)])
+            game = Game(n, strategies, bet_strategies, n, action_models, bet_models)
+            scores = game.playGame()
+
+            for p in range(4):
+                Total_Scores[p] += scores[p]
+
+            if (Total_Scores[0] >= 41 and Total_Scores[2] >= 0) or (Total_Scores[0] >= 0 and Total_Scores[2] >= 41):
+                   wins_team1 += 1
+                   #print 'Team 1 won'
+                   break
+            if (Total_Scores[1] >= 41 and Total_Scores[3] >= 0) or (Total_Scores[1] >= 0 and Total_Scores[3] >= 41):
+                   wins_team2 += 1
+                   #print 'Team 2 won'
+                   break
+
+        #print Total_Scores
+    print 'Team 1 won' + str( wins_team1)
+    print 'Team 2 won' + str(wins_team2)
+    frac_won_by_nn[i] = wins_team2/num_games
+print frac_won_by_nn
+plt.figure(2)
+plt.plot(frac_won_by_nn)
+plt.title('NN performance vs heuristic team')
