@@ -75,8 +75,10 @@ def update_state(p, rd):
     state = game.action_state(p,rd)
     # Get the action taken
     a = game.h[rd][p]
+    # Find the number of the last card played
+    count = max(state['order'][0])
     # Update the state based on action taken
-    state['order'][0,a.suit*n + a.value - 2] = max(state['order'][0]) + 1
+    state['order'][0,a.suit*n + a.value - 2] = count + 1
     state['players'][0,a.suit*n + a.value - 2] = p + 1
     state['hand'][0,a.suit*n + a.value - 2] = 0
     
@@ -84,6 +86,15 @@ def update_state(p, rd):
     if state['lead'] == -1:
         state['lead'] = a.suit + 1
     
+    # If this is the last card for this trick, update tricks
+    if (count + 1) % 4 == 0:
+        if a > state['current_winner']: # If this would win
+            pwin = p
+        else: # The current winner won
+            cwin = state['current_winner']
+            pwin = state['players'][0, cwin.suit * n + cwin.value - 2]
+        state['tricks'][0, pwin] += 1
+        
     return state
 
 

@@ -103,6 +103,21 @@ class Game:
         return bet
     
     # Returns the state in a form that's expected by the playing NN
+    def update_state(self, p, t):
+        c = self.h[t][p];
+        self.state['order'][0,c.suit*self.n + c.value-2] = max(self.state['order']) + 1;
+        self.state['players'][0,c.suit*self.n + c.value-2] = p + 1;
+        
+    # Returns the state for the playing NN
+    def get_state(self, p, t):
+        self.state['hand'] = self.H[p].get_cards_binary(self.n)
+        self.state['tricks'] = np.reshape(self.tricks,(1,4));
+        self.state['lead'] = self.leads[t]
+        
+        return self.state
+    
+    # Returns the state in a form that's expected by the playing NN (builds from
+    # scratch; should only be used externally to save training data)
     def action_state(self, player, current_round):
         count = 1;
         self.state['order'] = np.zeros((1,52));
@@ -128,7 +143,8 @@ class Game:
             
         self.state['hand'] = self.H_history[current_round][p].get_cards_binary(self.n)
         self.state['tricks'] = np.reshape(self.tricks,(1,4));
-        self.state['lead'] = self.leads[current_round]
+        self.state['lead'] = np.array(self.leads[current_round])
+        self.state['current_winner'] = np.array(max([cc for cc in self.h[t] if cc is not None]))
         
         return self.state
     
@@ -147,13 +163,14 @@ class Game:
             # Pick a valid card at random
          #   ind = rnd.randint( 0, len(self.H[p].validCards()) - 1 )
           #  return self.H[p].play( self.H[p].validToRealIndex(ind) )
+          
     def aiInput(self, p, current_round, strategy, valid_cards):
         if strategy == 3: # Simple heuristic
             state = [self.play_order[current_round].index(p),self.card_played_by,self.cards_this_round,self.suit_trumped_by,self.bet_deficits]
         elif strategy == 4: # Playing NN
-            state = self.action_state(p, current_round)
+            state = self.get_state(p, current_round)#self.action_state(p, current_round)
         elif strategy == 5: #playing genetic
-            state = self.action_state(p, current_round)
+            state = self.get_state(p, current_round)#self.action_state(p, current_round)
         else: # Don't need the state, e.g. random, greedy
             state = []
         return self.H[p].play(self.H[p].validToRealIndex( self.aiplayers[p].get_action(self.n, p, state, valid_cards) ));
@@ -161,19 +178,9 @@ class Game:
 
     #To handle AI bets for player p
     def aiBet(self, p, strategy=1):
-        #print 'ai ' + str(p) +  ' is goign to bet ' +  str(self.aiplayers[p].get_bet(self.H[p]))
         return self.aiplayers[p].get_bet(self.H[p])
-        # if strategy==3: # Simple heuristic
-        #     bet = self.heuristicBet(p)
-        #     return bet
-        # if strategy==2: # Myopic greedy
-        #     #bet = rnd.randint(2,5)
-        #     bet = players[p].get_bet(H[p])
-        #     return bet
-        # if strategy==1: # Random strategy
-        #     bet = rnd.randint(2,5)
-        #     return bet
-    #Betting Method 1
+       
+
     def heuristicBet(self, p):
         bet = min(sum(self.H[p].ace_by_suit().values()) + sum(self.H[p].king_by_suit().values()) + round(self.H[p].trump_ct()/4), 13)
         return bet
@@ -260,6 +267,9 @@ class Game:
                     Card.lead = self.h[t][p].suit;
                     self.leads[t] = Card.lead;
 
+                # Update the state for the playing NN
+                self.update_state(p, t);
+
                 # Display what was played
                 self.printVerbose(str(p + 1) + ':  ' + str(self.h[t][p]))
                 self.printVerbose('')
@@ -271,6 +281,8 @@ class Game:
                 if Card.lead != -1 and Card.lead != Card.trump:
                     if self.h[t][p].suit == Card.trump:
                         self.suit_trumped_by[Card.lead].add(p)
+                        
+               
 
             # Find the winning player from the cards played this round
             self.T[t] = self.winner(self.h[t]);

@@ -133,8 +133,15 @@ class AIPlayer:
             state['order'][0, a.suit * n + a.value - 2] = count + 1
             state['players'][0, a.suit * n + a.value - 2] = p + 1
             state['hand'][0, a.suit * n + a.value - 2] = 0
-            if change_lead:
+            if change_lead:     # The lead was changed
                 state['lead'] = a.suit + 1
+            if (count + 1) % 4 == 0:    # Update tricks
+                if a > state['current_winner']: # If this would win
+                    pwin = p
+                else: # The current winner won
+                    cwin = state['current_winner']
+                    pwin = state['players'][0, cwin.suit * n + cwin.value - 2]
+                state['tricks'][0, pwin] += 1
             # Add to the list
             for key in state:
                 data[key][j,] = state[key]
@@ -144,6 +151,8 @@ class AIPlayer:
             state['hand'][0, a.suit * n + a.value - 2] = 1
             if change_lead:
                 state['lead'] = -1
+            if (count + 1) % 4 == 0:    # Update tricks
+                state['tricks'][0, pwin] -= 1
             
         return data
 #        # Initialize an empty dictionary to empty lists
