@@ -112,8 +112,8 @@ n = 13;
 gamma = 0.9
 
 # Strategies that each player should use to play
-strategies = [4,3,4,3]
-bet_strategies = ['model','heuristic','model','heuristic']
+strategies = [4,4,4,4]
+bet_strategies = ['model','model','model','model']
 
 # For saving the game state after each game
 Hands = []
@@ -242,7 +242,7 @@ for t in range(1,num_tests+1):
         y_train_RL = []
     
     # Save the models after they have been trained 10 times
-    if t % train_interval*10 == 0:
+    if t % (train_interval*10) == 0:
         # Save the models
         action_model.save('./Models/action_' + timeString + '_' + str(t) + '.h5')
         bet_model.save('./Models/bet_' + timeString + '_' + str(t) + '.h5')
