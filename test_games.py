@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 strategies = [3,4,3,4]
 # Number of full games to play
-num_games = 100
+num_games = 50
 wins_team1 = 0
 wins_team2 = 0
 datatype='matrix'
@@ -39,9 +39,9 @@ gvg = keras.models.load_model('Models/Greedy_v_Greedy_bet_data_model_' + datatyp
                                                    custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
 
 n=13
-frac_won_by_nn = [0 for i in range(100)]
-for i in range(100):
-    iterations = str((i+1)*1000)
+frac_won_by_nn = [0 for i in range(10)]
+for i in range(10):
+    iterations = str((i+1)*10000)
     nn_action_model =keras.models.load_model('Models/action_2018-04-17-17-58-35_'+str(iterations)+'.h5',  custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
     nn_bet_model = keras.models.load_model('Models/bet_2018-04-17-17-58-35_'+str(iterations)+'.h5', custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
     bet_strategies = ['model', 'model', 'model', 'model']
@@ -71,6 +71,8 @@ for i in range(100):
         #print Total_Scores
     print 'Team 1 won' + str( wins_team1)
     print 'Team 2 won' + str(wins_team2)
+    wins_team1 = 0
+    wins_team2 = 0
     frac_won_by_nn[i] = wins_team2/num_games
 print frac_won_by_nn
 plt.figure(2)
