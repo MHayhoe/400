@@ -112,34 +112,68 @@ class AIPlayer:
     # corresponding to what the state would look like after an action was taken,
     # for each action in the list actions.
     def get_potential_states(self,n,p,state,actions):
+        # Find number of actions
+        alen = len(actions);
+        # Find number of cards that have been played so far
+        count = max(state['order'][0])
         # Initialize an empty dictionary to empty lists
         data = {}
         for key in state:
-            data[key] = []
+            data[key] = np.zeros((alen,) + state[key].shape)
         # Check if we would be setting the lead suit
         if state['lead'] == -1:
             change_lead = True
         else:
             change_lead = False
                 
-        for a in actions:
+        for j in range(alen):
+            # Get current action being considered
+            a = actions[j];
             # Build the potential state after the action is taken
-            state['order'][0, a.suit * n + a.value - 2] = max(state['order'][0]) + 1
+            state['order'][0, a.suit * n + a.value - 2] = count + 1
             state['players'][0, a.suit * n + a.value - 2] = p + 1
             state['hand'][0, a.suit * n + a.value - 2] = 0
             if change_lead:
                 state['lead'] = a.suit + 1
             # Add to the list
             for key in state:
-                data[key].append(state[key])
+                data[key][j,] = state[key]
             # Remove the potential state
             state['order'][0, a.suit * n + a.value - 2] = 0
             state['players'][0, a.suit * n + a.value - 2] = 0
             state['hand'][0, a.suit * n + a.value - 2] = 1
             if change_lead:
                 state['lead'] = -1
-
-        for key in data:
-            data[key] = np.asarray(data[key])
             
         return data
+#        # Initialize an empty dictionary to empty lists
+#        data = {}
+#        for key in state:
+#            data[key] = []
+#        # Check if we would be setting the lead suit
+#        if state['lead'] == -1:
+#            change_lead = True
+#        else:
+#            change_lead = False
+#                
+#        for a in actions:
+#            # Build the potential state after the action is taken
+#            state['order'][0, a.suit * n + a.value - 2] = max(state['order'][0]) + 1
+#            state['players'][0, a.suit * n + a.value - 2] = p + 1
+#            state['hand'][0, a.suit * n + a.value - 2] = 0
+#            if change_lead:
+#                state['lead'] = a.suit + 1
+#            # Add to the list
+#            for key in state:
+#                data[key].append(state[key])
+#            # Remove the potential state
+#            state['order'][0, a.suit * n + a.value - 2] = 0
+#            state['players'][0, a.suit * n + a.value - 2] = 0
+#            state['hand'][0, a.suit * n + a.value - 2] = 1
+#            if change_lead:
+#                state['lead'] = -1
+#
+#        for key in data:
+#            data[key] = np.asarray(data[key])
+#            
+#        return data
