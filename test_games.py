@@ -10,24 +10,14 @@ import keras
 from keras import backend as K
 import numpy as np
 import matplotlib.pyplot as plt
-
+from Loss import loss_bet, get_loss_bet
 strategies = [3,4,3,4]
 # Number of full games to play
 num_games = 50
 wins_team1 = 0
 wins_team2 = 0
 datatype='matrix'
-def loss_bet(y_true, y_pred):
-    return K.mean(y_true + K.sign(y_pred - y_true) * y_pred)
 
-# Returns our custom loss function
-def get_loss_bet():
-    # Our custom loss function: if we make our bet (y_true >= y_pred), the loss
-    # is the amount we could have gotten if we'd bet y_true, i.e., it's
-    # y_true - y_pred. If we didn't make our bet, then our loss is what we
-    # could have gotten minus what we lost, i.e., y_true + y_pred
-    # (since -1*(-bet) = bet)
-    return loss_bet
 hvh = keras.models.load_model('Models/Heuristic_v_Heuristic_bet_data_model_' + datatype + '_model.h5',
                                                    custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
 
@@ -37,13 +27,15 @@ gvh = keras.models.load_model('Models/Greedy_v_Heuristic_bet_data_model_' + data
                                                    custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
 gvg = keras.models.load_model('Models/Greedy_v_Greedy_bet_data_model_' + datatype + '_model.h5',
                                                    custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
+#'2018-04-17-17-58-35'
+timestr = '2018-04-17-21-14-15'
 
 n=13
 frac_won_by_nn = [0 for i in range(10)]
 for i in range(10):
     iterations = str((i+1)*10000)
-    nn_action_model =keras.models.load_model('Models/action_2018-04-17-17-58-35_'+str(iterations)+'.h5',  custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
-    nn_bet_model = keras.models.load_model('Models/bet_2018-04-17-17-58-35_'+str(iterations)+'.h5', custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
+    nn_action_model =keras.models.load_model('Models/action_' + timestr + '_'+str(iterations)+'.h5',  custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
+    nn_bet_model = keras.models.load_model('Models/bet_' + timestr + '_'+str(iterations)+'.h5', custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
     bet_strategies = ['model', 'model', 'model', 'model']
     bet_models = [hvh, nn_bet_model,hvh,nn_bet_model]
     action_models = [None, nn_action_model, None, nn_action_model]
