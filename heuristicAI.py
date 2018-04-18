@@ -14,12 +14,7 @@ import random as rnd
 #def heuristicChoice(p,valid_cards, card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by,position):
 
 def heuristicChoice(p,position,valid_cards, cards_played_by,cards_this_round,suit_trumped_by,bet_deficits):
-    #print cards_this_round
-    #determine position of player
-    #pos = determine_position(p,cards_this_round)
     pos = position +1
-    #print pos
-    #get partner player index
     partner = (p+2)%4
     leadsuit = valid_cards[0].lead
     trumpsuit = valid_cards[0].trump
@@ -128,7 +123,7 @@ def move_not_last(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,b
             return losable
     #if partner is winning, try to win if partners deficit is less than own
     else:
-        if bet_deficits[prtner_idx]<bet_deficits[p] and winnable is not None:
+        if bet_deficits[prtner_idx]<bet_deficits[p] and winnable is not None and winnable_safe==True:
             #print 'take from partner - sorry! :' + str(winnable)
             return winnable
         else:
@@ -141,7 +136,6 @@ def move_last(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_d
     winnable = min_winnable(cur_max, suitc, trumpc)
     losable = min_throwable(suitc, throwc, trumpc)
     #if partner is not winning, try to win if possible, or throw lowest card
-    choice = None
     if winner!=prtner_idx:
         if winnable is not None:
             #print 'winnable: ' + str(winnable)
@@ -213,16 +207,10 @@ def min_throwable(suitc,throwc,trumpc):
         return min(throwc)
     else:
         return min(trumpc)
-##
-##
-##   
-# ???????????????????????????????????????????????????????????????????????????
-##
-##
-##
+##determine the minimum card that can win the current hand, if one exists
 def min_winnable(max_card,suitc,trumpc):
     if len(suitc)>0:
-        return min(suitc)
+        return min_lead_suit_gt_card(suitc,max_card)
     if len(trumpc)>0:
             return min(trumpc)
     else:
@@ -240,14 +228,8 @@ def suit_broken(cards_played,suit):
 def choose_random(valid_cards):
     return valid_cards[rnd.randint(0,len(valid_cards)-1)]
 
-##
-##
-##   
-# ???????????????????????????????????????????????????????????????????????????
-##
-##
-##
-def determine_safe(cards_played,card_considered,partner,suit_trumped_by):
+## Determine whether a card is 'safe' to play, i.e. not the case that higher of the lead suit are out there and not the case that suit is known to be trumped by opponents
+def determine_safe(cards_played_by,card_considered,partner,suit_trumped_by):
     higher_cards = card_considered.get_higher_cards()
     trumpers = suit_trumped_by[card_considered.suit]
     #check if suit broken by opponents
@@ -255,7 +237,7 @@ def determine_safe(cards_played,card_considered,partner,suit_trumped_by):
         return False
     #if not broken, check whether higher cards of the same suit have not yet been played
     else:
-        higher_of_suit = [card for card in higher_cards if card.suit==card_considered.suit and cards_played[str(card)] is None]
+        higher_of_suit = [card for card in higher_cards if card.suit==card_considered.suit and cards_played_by[str(card)] is None]
         if len(higher_of_suit)>0:
             return False
     return True
