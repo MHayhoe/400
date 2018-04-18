@@ -9,7 +9,7 @@ from GameObject import Game
 import keras
 from keras import backend as K
 
-strategies = [3,2,3,2]
+strategies = [3,4,3,4]
 # Number of full games to play
 num_games = 100
 wins_team1 = 0
@@ -26,7 +26,7 @@ def get_loss_bet():
     # could have gotten minus what we lost, i.e., y_true + y_pred
     # (since -1*(-bet) = bet)
     return loss_bet
-hvg = keras.models.load_model('Models/Heuristic_v_Heuristic_bet_data_model_' + datatype + '_model.h5',
+hvh = keras.models.load_model('Models/Heuristic_v_Heuristic_bet_data_model_' + datatype + '_model.h5',
                                                    custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
 
 hvg = keras.models.load_model('Models/Heuristic_v_Greedy_bet_data_model_' + datatype + '_model.h5',
@@ -36,16 +36,19 @@ gvh = keras.models.load_model('Models/Greedy_v_Heuristic_bet_data_model_' + data
 gvg = keras.models.load_model('Models/Greedy_v_Greedy_bet_data_model_' + datatype + '_model.h5',
                                                    custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
 
-bet_models = [hvg, gvh,hvg,gvh]
-bet_strategies = ['model', 'model', 'model', 'model']
 n=13
-action_model = None
+nn_action_model =keras.models.load_model('Models/action_2018-04-17-17-58-35_100000.h5',  custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
+nn_bet_model = keras.models.load_model('Models/bet_2018-04-17-17-58-35_100000.h5', custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
+bet_strategies = ['model', 'model', 'model', 'model']
+bet_models = [hvh, nn_bet_model,hvh,nn_bet_model]
+action_models = [None, nn_action_model, None, nn_action_model]
+
 for g in range(num_games):
     Total_Scores = [0 for p in range(4)]
     
     while True:
         #game = Game(n, strategies, bet_strategies, n, [action_model for i in range(4)], [bet_model for i in range(4)])
-        game = Game(n, strategies, bet_strategies, n, [action_model for i in range(4)], bet_models)
+        game = Game(n, strategies, bet_strategies, n, action_models, bet_models)
         scores = game.playGame()
     
         for p in range(4):
