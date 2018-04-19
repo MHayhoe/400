@@ -105,15 +105,15 @@ class Game:
     # Returns the state in a form that's expected by the playing NN
     def update_state(self, p, t):
         c = self.h[t][p];
-        self.state['order'][0,c.suit*self.n + c.value-2] = max(self.state['order']) + 1;
+        self.state['order'][0,c.suit*self.n + c.value-2] = np.max(self.state['order']) + 1;
         self.state['players'][0,c.suit*self.n + c.value-2] = p + 1;
         
     # Returns the state for the playing NN
     def get_state(self, p, t):
         self.state['hand'] = self.H[p].get_cards_binary(self.n)
         self.state['tricks'] = np.reshape(self.tricks,(1,4));
-        self.state['lead'] = self.leads[t]
-        
+        self.state['lead'] = np.array(self.leads[t])
+                
         return self.state
     
     # Returns the state in a form that's expected by the playing NN (builds from
@@ -144,7 +144,6 @@ class Game:
         self.state['hand'] = self.H_history[current_round][p].get_cards_binary(self.n)
         self.state['tricks'] = np.reshape(self.tricks,(1,4));
         self.state['lead'] = np.array(self.leads[current_round])
-        self.state['current_winner'] = np.array(max([cc for cc in self.h[t] if cc is not None]))
         
         return self.state
     
@@ -173,7 +172,11 @@ class Game:
             state = self.get_state(p, current_round)#self.action_state(p, current_round)
         else: # Don't need the state, e.g. random, greedy
             state = []
-        return self.H[p].play(self.H[p].validToRealIndex( self.aiplayers[p].get_action(self.n, p, state, valid_cards) ));
+        if (np.max(self.state['order']) + 1) % 4 == 0: # 3 cards have been played this trick
+            current_winner = np.max([cc for cc in self.h[current_round] if cc is not None])
+        else:
+            current_winner = None
+        return self.H[p].play(self.H[p].validToRealIndex( self.aiplayers[p].get_action(self.n, p, state, valid_cards, current_winner) ));
 
 
     #To handle AI bets for player p

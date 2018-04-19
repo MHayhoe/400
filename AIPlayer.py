@@ -57,13 +57,13 @@ class AIPlayer:
 
     # ----- Get Action -----
     # Returns the index of the selected action, from the list of Cards 'actions'
-    def get_action(self, n, p, state, actions):
+    def get_action(self, n, p, state, actions, current_winner):
         if self.strategy == 5:
-            potential_states = self.get_potential_states(n, p, state, actions)
+            potential_states = self.get_potential_states(n, p, state, actions, current_winner)
             #choose randomly with weights given by the genetic algorithm
             ind = gai.geneticChoice(n,p,state,actions,self.genetic_parameters, potential_states)
         if self.strategy == 4: # Playing NN
-            potential_states = self.get_potential_states(n, p, state, actions)
+            potential_states = self.get_potential_states(n, p, state, actions, current_winner)
             values = self.action_model.predict(potential_states)
             # # Take random action w.p. eps
             if rnd.random() > self.eps:
@@ -111,11 +111,11 @@ class AIPlayer:
     # Returns a dictionary, where each value is a numpy array of arrays
     # corresponding to what the state would look like after an action was taken,
     # for each action in the list actions.
-    def get_potential_states(self,n,p,state,actions):
+    def get_potential_states(self,n,p,state,actions,current_winner):
         # Find number of actions
         alen = len(actions);
         # Find number of cards that have been played so far
-        count = max(state['order'][0])
+        count = np.max(state['order'][0])
         # Initialize an empty dictionary to empty lists
         data = {}
         for key in state:
@@ -135,13 +135,12 @@ class AIPlayer:
             state['hand'][0, a.suit * n + a.value - 2] = 0
             if change_lead:     # The lead was changed
                 state['lead'] = a.suit + 1
-            if (count + 1) % 4 == 0:    # Update tricks
-                if a > state['current_winner']: # If this would win
+            if (count + 1) % 4 == 0 and current_winner is not None:    # Update tricks
+                if a > current_winner: # If this would win
                     pwin = p
                 else: # The current winner won
-                    cwin = state['current_winner']
-                    pwin = state['players'][0, cwin.suit * n + cwin.value - 2]
-                state['tricks'][0, pwin] += 1
+                    pwin = state['players'][0, current_winner.suit * n + current_winner.value - 2] - 1
+                state['tricks'][0, int(pwin)] += 1
             # Add to the list
             for key in state:
                 data[key][j,] = state[key]
@@ -152,7 +151,7 @@ class AIPlayer:
             if change_lead:
                 state['lead'] = -1
             if (count + 1) % 4 == 0:    # Update tricks
-                state['tricks'][0, pwin] -= 1
+                state['tricks'][0, int(pwin)] -= 1
             
         return data
 #        # Initialize an empty dictionary to empty lists

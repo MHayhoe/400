@@ -86,14 +86,14 @@ def update_state(p, rd):
     if state['lead'] == -1:
         state['lead'] = a.suit + 1
     
+    cwin = max(game.h[rd])
     # If this is the last card for this trick, update tricks
     if (count + 1) % 4 == 0:
-        if a > state['current_winner']: # If this would win
+        if a > cwin: # If this would win
             pwin = p
         else: # The current winner won
-            cwin = state['current_winner']
-            pwin = state['players'][0, cwin.suit * n + cwin.value - 2]
-        state['tricks'][0, pwin] += 1
+            pwin = state['players'][0, cwin.suit * n + cwin.value - 2] - 1
+        state['tricks'][0, int(pwin)] += 1
         
     return state
 
@@ -102,10 +102,10 @@ def update_state(p, rd):
 #  INITIALIZATION OF VARIABLES  
 #-------------------------------
  # Number of rounds of play to run
-num_tests = 100000          
+num_tests = 10000          
 
 # Interval at which to train
-train_interval = num_tests/100;
+train_interval = num_tests/10;
 # Offset of training for betting and playing
 train_offset = train_interval/2;
 
