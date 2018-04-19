@@ -79,7 +79,7 @@ def test_game(test_type):
     n=13
     wins_team1 = [0 for i in range(10)]
     wins_team2 = [0 for i in range(10)]
-    frac_won_by_nn = [0 for i in range(10)]
+    #frac_won_by_nn = [0 for i in range(10)]
 
     for i in range(1):
         #iterations = str((i+1)*10000)
@@ -107,11 +107,21 @@ def test_game(test_type):
             #print Total_Scores
         print 'Team 1 won' + str(wins_team1[i])
         print 'Team 2 won' + str(wins_team2[i])
-        frac_won_by_nn[i] = wins_team2[i]*1.0/num_games
-    print frac_won_by_nn
+        #frac_won_by_nn[i] = wins_team2[i]*1.0/num_games
+    #print frac_won_by_nn
+
     #plt.figure(2)
     #plt.plot(frac_won_by_nn)
     #plt.title('NN performance vs heuristic team')
     #plt.savefig('Plots/nn.png')
+    return wins_team2
+#for testtype in ['hvg', 'hvr', 'gvr', 'nnvh', 'nnvg', 'nnvr']:
 
-test_game('hvg')
+nameString='results.csv'
+#for testtype in ['hvg', 'hvr', 'gvr', 'nnvh', 'nnvg', 'nnvr']:
+for testtype in ['hvg','nnvh','nnvg']:
+    print testtype
+    wins = test_game(testtype)
+    print wins
+    with open(nameString, "a") as output:
+        np.savetxt(output, wins, delimiter=',', fmt='%i')
