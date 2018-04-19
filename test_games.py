@@ -1,13 +1,5 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Apr 17 20:46:41 2018
-
-@author: Mikhail
-"""
 from GameObject import Game
 import keras
-from keras import backend as K
 import numpy as np
 import matplotlib.pyplot as plt
 from Loss import loss_bet, get_loss_bet
@@ -58,10 +50,14 @@ def test_game(test_type):
         action_models = [None,None,None,None]
         num_iters = 1
     elif test_type == 'nnvh':
-        strategies = [3,4,3,4]
+#        strategies = [3,4,3,4]
+#        bet_strategies = ['model', 'model', 'model', 'model']
+#        action_models = [None, nn_action_model, None, nn_action_model]
+#        bet_models = [hvh, nn_bet_model,hvh,nn_bet_model]
+        strategies = [4,3,4,3]
         bet_strategies = ['model', 'model', 'model', 'model']
-        action_models = [None, nn_action_model, None, nn_action_model]
-        bet_models = [hvh, nn_bet_model,hvh,nn_bet_model]
+        action_models = [nn_action_model, None, nn_action_model, None]
+        bet_models = [nn_bet_model, hvh, nn_bet_model, hvh]
         num_iters = 10
     elif test_type == 'nnvg':
         strategies = [2,4,2,4]
@@ -105,8 +101,8 @@ def test_game(test_type):
                        break
                 #print scores
                 #print Total_Scores
-            print 'game: ' + str(g)
-            #print Total_Scores
+            #print 'game: ' + str(g)
+            print Total_Scores
         print 'Team 1 won' + str(wins_team1[i])
         print 'Team 2 won' + str(wins_team2[i])
         #frac_won_by_nn[i] = wins_team2[i]*1.0/num_games

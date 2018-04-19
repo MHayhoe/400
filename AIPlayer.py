@@ -124,13 +124,16 @@ class AIPlayer:
             change_lead = True
         else:
             change_lead = False
+        # Change the state to be relative to this player
+        for i in range(n*4):
+            state['players'][0,i] = (state['players'][0,i] - (p + 1)) % 4 + 1
                 
         for j in range(alen):
             # Get current action being considered
             a = actions[j];
             # Build the potential state after the action is taken
             state['order'][0, a.suit * n + a.value - 2] = count + 1
-            state['players'][0, a.suit * n + a.value - 2] = p + 1
+            state['players'][0, a.suit * n + a.value - 2] = 1
             state['hand'][0, a.suit * n + a.value - 2] = 0
             if change_lead:     # The lead was changed
                 state['lead'] = a.suit + 1

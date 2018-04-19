@@ -305,7 +305,7 @@ class Game:
         for p in range(4):
             tricks_p = sum(T[t] ==p for t in range(13))
             bet_p = bets[p]
-            self.printVerbose(bets[p])
+            #self.printVerbose(bets[p])
             chg_score = (2*(tricks_p>= bet_p)-1)*bet_p
             self.printVerbose('Player ' + str(p) + ' bet ' +str(bet_p) + ' and won ' +str(tricks_p) + ' for a total of ' + str(chg_score))
             scores[p]=chg_score
@@ -314,7 +314,7 @@ class Game:
     # Play the game. Call this method to run the game externally.
     def playGame(self):
         self.playRound()
-        self.printVerbose(self.bets)
+        #self.printVerbose(self.bets)
         return(self.getFinalScores(self.bets, self.T))
         
     def getTricks(self):

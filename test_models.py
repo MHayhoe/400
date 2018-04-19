@@ -1,4 +1,5 @@
 import numpy as np
+import random as rnd
 import datetime as dt
 import matplotlib.pyplot as plt
 
@@ -77,9 +78,12 @@ def update_state(p, rd):
     a = game.h[rd][p]
     # Find the number of the last card played
     count = max(state['order'][0])
+    # Change the state to be relative to this player
+    for i in range(n*4):
+        state['players'][0,i] = (state['players'][0,i] - (p + 1)) % 4 + 1
     # Update the state based on action taken
     state['order'][0,a.suit*n + a.value - 2] = count + 1
-    state['players'][0,a.suit*n + a.value - 2] = p + 1
+    state['players'][0,a.suit*n + a.value - 2] = 1
     state['hand'][0,a.suit*n + a.value - 2] = 0
     
     # If this would be the first play, update lead suit
@@ -102,7 +106,7 @@ def update_state(p, rd):
 #  INITIALIZATION OF VARIABLES  
 #-------------------------------
  # Number of rounds of play to run
-num_tests = 10000          
+num_tests = 10000
 
 # Interval at which to train
 train_interval = num_tests/10;
@@ -197,8 +201,8 @@ for t in range(1,num_tests+1):
     Scores.append(scores)
     Tricks.append(game.tricks)
     
-    # Save data for training
-    for p in [0]:
+    # Save data for training; pick a random player and train with their data
+    for p in rnd.sample(range(4),1):
         # Save the hands as training data for the betting NN
         init_hands[p].sort()
         x_train.append( init_hands[p].get_cards_as_matrix() )
