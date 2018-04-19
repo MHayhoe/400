@@ -39,14 +39,13 @@ class AIPlayer:
                 else:
                     #self.betmodel = keras.models.load_model('./Models/Heuristic_v_Heuristic_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
                     self.betmodel = keras.models.load_model('./Models/Heuristic_v_Greedy_bet_data_'+datatype+'.h5', custom_objects={'get_loss_bet':get_loss_bet, 'loss_bet':loss_bet})
-        
-        if self.strategy == 4:
-            self.action_model = action_object
-        if self.strategy == 5:
-            pass
         elif self.bettype=='heuristic':
             pass
         else:
+            pass
+        if self.strategy == 4:
+            self.action_model = action_object
+        if self.strategy == 5:
             pass
 
     # ----- PRINTING METHODS -----
@@ -90,7 +89,7 @@ class AIPlayer:
         elif self.bettype =='genetic':
             bet = gai.geneticBet(hand, self.genetic_parameters['bet_params'])
         else:
-            bet = rnd.randint(2, 13)
+            bet = rnd.randint(2, 5)
         return bet
     
     #------ Get Cards ----

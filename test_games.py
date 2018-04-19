@@ -47,14 +47,14 @@ def test_game(test_type):
         num_iters =1
     elif test_type == 'hvr':
         strategies = [1,3,1,3]
-        bet_models = [hvh, gvg,hvh,gvg]
-        bet_strategies = ['model', 'model', 'model', 'model']
+        bet_models = [gvg, hvh,gvg,hvh]
+        bet_strategies = ['none', 'model', 'none', 'model']
         action_models = [None,None,None,None]
         num_iters = 1
     elif test_type == 'gvr':
         strategies = [1,2,1,2]
-        bet_models = [hvh, gvg,hvh,gvg]
-        bet_strategies = ['model', 'model', 'model', 'model']
+        bet_models = [gvg, gvh,gvh,gvg]
+        bet_strategies = ['none', 'heuristic', 'none', 'heuristic']
         action_models = [None,None,None,None]
         num_iters = 1
     elif test_type == 'nnvh':
@@ -71,7 +71,7 @@ def test_game(test_type):
         num_iters = 10
     elif test_type == 'nnvr':
         strategies = [1,4,1,4]
-        bet_strategies = ['model', 'model', 'model', 'model']
+        bet_strategies = ['none', 'model', 'none', 'model']
         action_models = [None, nn_action_model, None, nn_action_model]
         bet_models = [gvg, nn_bet_model,gvg,nn_bet_model]
         num_iters = 10
@@ -103,7 +103,9 @@ def test_game(test_type):
                        wins_team2[i] += 1
                        #print 'Team 2 won'
                        break
-
+                #print scores
+                print Total_Scores
+            print 'game: ' + str(g)
             #print Total_Scores
         print 'Team 1 won' + str(wins_team1[i])
         print 'Team 2 won' + str(wins_team2[i])
@@ -115,11 +117,10 @@ def test_game(test_type):
     #plt.title('NN performance vs heuristic team')
     #plt.savefig('Plots/nn.png')
     return wins_team2
-#for testtype in ['hvg', 'hvr', 'gvr', 'nnvh', 'nnvg', 'nnvr']:
 
-nameString='results.csv'
-#for testtype in ['hvg', 'hvr', 'gvr', 'nnvh', 'nnvg', 'nnvr']:
-for testtype in ['hvg','nnvh','nnvg']:
+nameString='results2.csv'
+for testtype in ['hvg', 'hvr', 'gvr', 'nnvh', 'nnvg', 'nnvr']:
+#for testtype in ['hvg','nnvh','nnvg']:
     print testtype
     wins = test_game(testtype)
     print wins

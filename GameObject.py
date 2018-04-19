@@ -164,6 +164,12 @@ class Game:
           #  return self.H[p].play( self.H[p].validToRealIndex(ind) )
           
     def aiInput(self, p, current_round, strategy, valid_cards):
+        # if strategy == 1: #
+        #     ind = rnd.randint( 0, len(self.H[p].validCards()) - 1 )
+        #     return self.H[p].play( self.H[p].validToRealIndex(ind) )
+        # elif strategy == 2:
+        #     self.H[p].sort()
+        #     return self.H[p].play( self.H[p].validToRealIndex(0) );
         if strategy == 3: # Simple heuristic
             state = [self.play_order[current_round].index(p),self.card_played_by,self.cards_this_round,self.suit_trumped_by,self.bet_deficits]
         elif strategy == 4: # Playing NN
