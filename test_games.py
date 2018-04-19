@@ -30,7 +30,8 @@ gvh = keras.models.load_model('Models/Greedy_v_Heuristic_bet_data_model_' + data
 gvg = keras.models.load_model('Models/Greedy_v_Greedy_bet_data_model_' + datatype + '_model.h5',
                                                    custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
 timestr = '2018-04-17-21-14-15'
-iterations = 100000
+timestr = '2018-04-18-23-42-38'
+iterations = 10000
 
 nn_action_model = keras.models.load_model('Models/action_' + timestr + '_' + str(iterations) + '.h5',
                                           custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
@@ -118,7 +119,7 @@ def test_game(test_type):
     #plt.savefig('Plots/nn.png')
     return wins_team2
 
-nameString='results2.csv'
+nameString='results3.csv'
 for testtype in ['hvg', 'hvr', 'gvr', 'nnvh', 'nnvg', 'nnvr']:
 #for testtype in ['hvg','nnvh','nnvg']:
     print testtype

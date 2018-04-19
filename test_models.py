@@ -1,10 +1,11 @@
 import numpy as np
 import datetime as dt
 import matplotlib.pyplot as plt
-
+import keras
 from GameObject import Game
 from Models import initialize_parameters, construct_bet_NN, construct_play_NN
 from Loss import batch_loss_history
+from Loss import loss_bet,get_loss_bet
 
 #--------------------------
 #  HELPER METHODS
@@ -123,7 +124,7 @@ n = 13;
 gamma = 0.9
 
 # Strategies that each player should use to play
-strategies = [4,4,4,4]
+strategies = [4,3,4,3]
 bet_strategies = ['model','model','model','model']
 
 # For saving the game state after each game
@@ -152,6 +153,10 @@ timeString = str(dt.datetime.now().date())+'-'+str(tempTime.hour)+'-'+str(tempTi
 # Initialize the Neural Nets
 bet_model = construct_bet_NN(n)
 action_model = construct_play_NN(n)
+datatype='matrix'
+hvh = keras.models.load_model('Models/Heuristic_v_Heuristic_bet_data_model_' + datatype + '_model.h5',
+                                                   custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
+bet_models = [bet_model, hvh, bet_model, hvh]
 
 
 #--------------------------
