@@ -104,7 +104,7 @@ def test_game(test_type):
                        #print 'Team 2 won'
                        break
                 #print scores
-                print Total_Scores
+                #print Total_Scores
             print 'game: ' + str(g)
             #print Total_Scores
         print 'Team 1 won' + str(wins_team1[i])
