@@ -4,6 +4,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 
 from GameObject import Game
+from AIPlayer import AIPlayer
 from Models import initialize_parameters, construct_bet_NN, construct_play_NN
 from Loss import batch_loss_history
 
@@ -68,9 +69,23 @@ def plot_action_performance():
     print np.mean(np.array(Tricks)[-train_interval/2:-1],0)
     
     plt.show()
+    
+def makeAIs(t):
+    AIs = [None for p in range(4)]
+    # Make new AIPlayer objects to refresh its model
+    for p in range(4):
+        if strategies[p] == 4:
+            AIs[p] = AIPlayer(strategies[p],bet_strategies[p],'matrix',bet_model,action_model,None,0.05**(t/train_interval/10 + 1))
+        else:
+            AIs[p] = AIPlayer(strategies[p],bet_strategies[p],'matrix',None,None,None,0)
+            
+    return AIs
  
+# !!!!!!!!!!!!!!!!!!!!!!   NO LONGER USED   !!!!!!!!!!!!!!!!!!!!!!
+# !!!!!!!!!!!!!!!!!!!!!!   NO LONGER USED   !!!!!!!!!!!!!!!!!!!!!!
+# !!!!!!!!!!!!!!!!!!!!!!   NO LONGER USED   !!!!!!!!!!!!!!!!!!!!!!
 # Returns a state dictionary from the game after applying the action that was
-    # taken by player p in round rd.
+# taken by player p in round rd.
 def update_state(p, rd):
     # Get the game state
     state = game.action_state(p,rd)
@@ -94,10 +109,10 @@ def update_state(p, rd):
     # If this is the last card for this trick, update tricks
     if (count + 1) % 4 == 0:
         if a > cwin: # If this would win
-            pwin = p
+            pwin = 1
         else: # The current winner won
-            pwin = state['players'][0, cwin.suit * n + cwin.value - 2] - 1
-        state['tricks'][0, int(pwin)] += 1
+            pwin = int(state['players'][0, cwin.suit*n + cwin.value - 2] - 1)
+        state['tricks'][0, pwin] += 1
         
     return state
 
@@ -106,7 +121,7 @@ def update_state(p, rd):
 #  INITIALIZATION OF VARIABLES  
 #-------------------------------
  # Number of rounds of play to run
-num_tests = 100000
+num_tests = 10000
 
 # Interval at which to train
 train_interval = 1000#num_tests/10;
@@ -167,6 +182,8 @@ y_train = []
 x_train_RL = {'order':[], 'players':[], 'bets':[], 'tricks':[], 'hand':[], 'lead':[]}
 y_train_RL = []
 
+AIs = makeAIs(0)
+
 # Play the game for num_tests rounds
 for t in range(1,num_tests+1):
     # Count 100's of rounds
@@ -174,7 +191,8 @@ for t in range(1,num_tests+1):
         print t
     
     # Play the game
-    game = Game(n, strategies, bet_strategies, n, [action_model for i in range(4)], [bet_model for i in range(4)])
+    game = Game(n, strategies, bet_strategies, n, AIs)
+    #game = Game(n, strategies, bet_strategies, n, [action_model for i in range(4)], [bet_model for i in range(4)])
     scores = game.playGame()
     
     # Save the scores for each team
@@ -211,7 +229,7 @@ for t in range(1,num_tests+1):
         # Save the game state as training data for the playing NN
         for rd in range(n):
             # Get and update the game state based on the action taken
-            state = update_state(p, rd)
+            state = game.action_state(p, rd) #update_state(p, rd)
             for key in state:
                 x_train_RL[key].append(state[key])
             # REWARD:
@@ -223,10 +241,11 @@ for t in range(1,num_tests+1):
     # Train the betting NN
     if t % train_interval == 0:
         print 'Training betting...'
+        # Train the NN
         hist = batch_loss_history()
         bet_model.fit(np.asarray(x_train), np.asarray(y_train), batch_size=batchsize, epochs = num_epochs, verbose=0, callbacks=[hist])
         
-        # --- Record the performance ---
+        # Record the performance
         training_range = range(int(t/train_interval - 1)*train_interval,int(t/train_interval)*train_interval)
         Bet_Model_History.append( np.mean(hist.losses) ) # Average loss across all batches
         Average_Scores.append([sum([Scores[i][p] for i in training_range])/train_interval for p in range(4)]) # Average score when using the previous strategy
@@ -234,6 +253,9 @@ for t in range(1,num_tests+1):
         # Plot the betting NN's performance
         plot_bet_performance()
         plot_bet_distributions(t- train_interval/2, t)
+        
+        # Make new AIPlayer objects to refresh models
+        AIs = makeAIs(t)
         
         print 'Done.'
     
@@ -243,15 +265,22 @@ for t in range(1,num_tests+1):
     # Train the playing NN
     if (t + train_offset) % train_interval == 0:
         print 'Training strategies...'
+        # Prepare training data
         for key in x_train_RL:
             x_train_RL[key] = np.asarray(x_train_RL[key])
+            
+        # Train the NN
         action_model.fit(x_train_RL, np.asarray(y_train_RL), batch_size=batchsize, epochs = num_epochs, verbose=0)
         
         # Plot the playing NN's performance
         plot_action_performance()
         
+        # Make new AIPlayer objects to refresh models
+        AIs = makeAIs(t)
+        
         print 'Done.'
         
+        # Reset training data
         for key in x_train_RL:
             x_train_RL[key] = []
         y_train_RL = []

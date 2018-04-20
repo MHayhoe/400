@@ -115,7 +115,7 @@ class AIPlayer:
         alen = len(actions);
         # Find number of cards that have been played so far
         count = np.max(state['order'][0])
-        # Initialize an empty dictionary to empty lists
+        # Initialize an empty dictionary to empty arrays
         data = {}
         for key in state:
             data[key] = np.zeros((alen,) + state[key].shape)
@@ -124,9 +124,6 @@ class AIPlayer:
             change_lead = True
         else:
             change_lead = False
-        # Change the state to be relative to this player
-        for i in range(n*4):
-            state['players'][0,i] = (state['players'][0,i] - (p + 1)) % 4 + 1
                 
         for j in range(alen):
             # Get current action being considered
@@ -139,10 +136,10 @@ class AIPlayer:
                 state['lead'] = a.suit + 1
             if (count + 1) % 4 == 0 and current_winner is not None:    # Update tricks
                 if a > current_winner: # If this would win
-                    pwin = p
+                    pwin = 0
                 else: # The current winner won
-                    pwin = state['players'][0, current_winner.suit * n + current_winner.value - 2] - 1
-                state['tricks'][0, int(pwin)] += 1
+                    pwin = int(state['players'][0, current_winner.suit * n + current_winner.value - 2] - 1)
+                state['tricks'][0, pwin] += 1
             # Add to the list
             for key in state:
                 data[key][j,] = state[key]
@@ -153,7 +150,7 @@ class AIPlayer:
             if change_lead:
                 state['lead'] = -1
             if (count + 1) % 4 == 0:    # Update tricks
-                state['tricks'][0, int(pwin)] -= 1
+                state['tricks'][0, pwin] -= 1
             
         return data
 #        # Initialize an empty dictionary to empty lists

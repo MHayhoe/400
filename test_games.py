@@ -77,18 +77,23 @@ def test_game(test_type):
     wins_team2 = [0 for i in range(num_iters)]
     #frac_won_by_nn = [0 for i in range(10)]
 
-    for i in range(num_iters):
-        iterations = str((i+1)*10000)
+    nn_action_old = keras.models.load_model('Models/action_' + timestr + '_' + str(10000) + '.h5',
+                                          custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
+    nn_bet_old = keras.models.load_model('Models/bet_' + timestr + '_' + str(10000) + '.h5',
+                                       custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
+
+    for i in range(2,10):
+        iterations = i*10000
         
         nn_action_model = keras.models.load_model('Models/action_' + timestr + '_' + str(iterations) + '.h5',
                                           custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
         nn_bet_model = keras.models.load_model('Models/bet_' + timestr + '_' + str(iterations) + '.h5',
                                        custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
 
-        strategies = [4,3,4,3]
+        strategies = [4,4,4,4]
         bet_strategies = ['model', 'model', 'model', 'model']
-        action_models = [nn_action_model, None, nn_action_model, None]
-        bet_models = [nn_bet_model, hvh, nn_bet_model, hvh]
+        action_models = [nn_action_model, nn_action_old, nn_action_model, nn_action_old]
+        bet_models = [nn_bet_model, nn_bet_old, nn_bet_model, nn_bet_old]
        
 
         for g in range(num_games):
