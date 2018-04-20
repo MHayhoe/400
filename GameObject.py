@@ -98,39 +98,42 @@ class Game:
         
     # Returns the state for the playing NN
     def get_state(self, p, t):
-        self.state['hand'] = self.H[p].get_cards_binary(self.n)
-        self.state['lead'] = np.array(self.leads[t])
+        state = self.state
+        
+        state['hand'] = self.H[p].get_cards_binary(self.n)
+        state['lead'] = np.array(self.leads[t])
         
         # Change the state to be relative to this player
         for i in range(self.n*4):
-            self.state['players'][0,i] = (self.state['players'][0,i] - (p + 1)) % 4 + 1
-        self.state['tricks'] = np.reshape(self.tricks[p:] + self.tricks[:p],(1,4));
-        self.state['bets'] = np.reshape(self.bets[p:] + self.bets[:p],(1,4));
+            state['players'][0,i] = (self.state['players'][0,i] - (p + 1)) % 4 + 1
+        state['tricks'] = np.reshape(self.tricks[p:] + self.tricks[:p],(1,4));
+        state['bets'] = np.reshape(self.bets[p:] + self.bets[:p],(1,4));
                 
-        return self.state
+        return state
     
     # Returns the state in a form that's expected by the playing NN (builds from
     # scratch; should only be used externally to save training data)
     def action_state(self, player, current_round):
         count = 1;
-        self.state['order'] = np.zeros((1,52));
-        self.state['players'] = np.zeros((1,52));
+        state = {}
+        state['order'] = np.zeros((1,52));
+        state['players'] = np.zeros((1,52));
         
         # Loop through previous rounds
         for t in range(current_round):
             for p in self.play_order[t]:
                 c = self.h[t][p];
                 if c is not None:
-                    self.state['order'][0,c.suit*self.n + c.value-2] = count;
+                    state['order'][0,c.suit*self.n + c.value-2] = count;
                     count = count + 1;
-                    self.state['players'][0,c.suit*self.n + c.value-2] = p + 1;
+                    state['players'][0,c.suit*self.n + c.value-2] = p + 1;
         
         # Loop through current round, up to and including 'player'
         for p in self.play_order[current_round]:
             c = self.h[current_round][p];
-            self.state['order'][0,c.suit*self.n + c.value-2] = count;
+            state['order'][0,c.suit*self.n + c.value-2] = count;
             count = count + 1;
-            self.state['players'][0,c.suit*self.n + c.value-2] = p + 1;
+            state['players'][0,c.suit*self.n + c.value-2] = p + 1;
             if p == player:
                 break
             
@@ -139,14 +142,14 @@ class Game:
         
         # Change the state to be relative to this player
         for i in range(self.n*4):
-            self.state['players'][0,i] = (self.state['players'][0,i] - (p + 1)) % 4 + 1
-        self.state['tricks'] = np.reshape(tricks[p:] + tricks[:p],(1,4));
-        self.state['bets'] = np.reshape(self.bets[p:] + self.bets[:p],(1,4));  
+            state['players'][0,i] = (state['players'][0,i] - (p + 1)) % 4 + 1
+        state['tricks'] = np.reshape(tricks[p:] + tricks[:p],(1,4));
+        state['bets'] = np.reshape(self.bets[p:] + self.bets[:p],(1,4));  
         
-        self.state['hand'] = self.H_history[current_round][p].get_cards_binary(self.n)
-        self.state['lead'] = np.array(self.leads[current_round])
+        state['hand'] = self.H_history[current_round][p].get_cards_binary(self.n)
+        state['lead'] = np.array(self.leads[current_round])
         
-        return self.state
+        return state
     
     
     # To handle AI decisions for player p
