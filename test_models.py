@@ -84,65 +84,29 @@ def plot_action_performance(timestamp,t):
 
 
 
-# def makeAIs(t):
-#     AIs = [None for p in range(4)]
-#     # Make new AIPlayer objects to refresh its model
-#     for p in range(4):
-#         if strategies[p] == 4:
-#             AIs[p] = AIPlayer(strategies[p],bet_strategies[p],'matrix',bet_model,action_model,None,0.05**(t/train_interval/10 + 1))
-#         else:
-#             AIs[p] = AIPlayer(strategies[p],bet_strategies[p],'matrix',None,None,None,0)
-#
-#    return AIs
- 
-# !!!!!!!!!!!!!!!!!!!!!!   NO LONGER USED   !!!!!!!!!!!!!!!!!!!!!!
-# !!!!!!!!!!!!!!!!!!!!!!   NO LONGER USED   !!!!!!!!!!!!!!!!!!!!!!
-# !!!!!!!!!!!!!!!!!!!!!!   NO LONGER USED   !!!!!!!!!!!!!!!!!!!!!!
-# Returns a state dictionary from the game after applying the action that was
-# taken by player p in round rd.
-def update_state(p, rd):
-    # Get the game state
-    state = game.action_state(p,rd)
-    # Get the action taken
-    a = game.h[rd][p]
-    # Find the number of the last card played
-    count = max(state['order'][0])
-    # Change the state to be relative to this player
-    for i in range(n*4):
-        state['players'][0,i] = (state['players'][0,i] - (p + 1)) % 4 + 1
-    # Update the state based on action taken
-    state['order'][0,a.suit*n + a.value - 2] = count + 1
-    state['players'][0,a.suit*n + a.value - 2] = 1
-    state['hand'][0,a.suit*n + a.value - 2] = 0
-    
-    # If this would be the first play, update lead suit
-    if state['lead'] == -1:
-        state['lead'] = a.suit + 1
-    
-    cwin = max(game.h[rd])
-    # If this is the last card for this trick, update tricks
-    if (count + 1) % 4 == 0:
-        if a > cwin: # If this would win
-            pwin = 1
-        else: # The current winner won
-            pwin = int(state['players'][0, cwin.suit*n + cwin.value - 2] - 1)
-        state['tricks'][0, pwin] += 1
-        
-    return state
+def makeAIs(t):
+    AIs = [None for p in range(4)]
+    # Make new AIPlayer objects to refresh its model
+    for p in range(4):
+        if strategies[p] == 4:
+            AIs[p] = AIPlayer(strategies[p],bet_strategies[p],'matrix',bet_model,action_model,None,0.05**(t/train_interval/10 + 1))
+        else:
+            AIs[p] = AIPlayer(strategies[p],bet_strategies[p],'matrix',None,None,None,0)
+
+    return AIs
+
 
 
 #-------------------------------
 #  INITIALIZATION OF VARIABLES  
 #-------------------------------
  # Number of rounds of play to run
-num_tests = 500000
+
+num_tests = 100000
 
 # Interval at which to train
-<<<<<<< HEAD
-train_interval = num_tests/100;
-=======
+
 train_interval = 1000#num_tests/10;
->>>>>>> c9d2f17c9b6163c9987dca259bfdf3b7331cb2b6
 # Offset of training for betting and playing
 train_offset = train_interval/2;
 
