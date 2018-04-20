@@ -7,23 +7,27 @@ from GameObject import Game
 from Models import initialize_parameters, construct_bet_NN, construct_play_NN
 from Loss import batch_loss_history
 from Loss import loss_bet,get_loss_bet
+import os
 
 #--------------------------
 #  HELPER METHODS
 #--------------------------
 # Plots the performance of the betting NN since last training
-def plot_bet_performance():
+def plot_bet_performance(timestamp, t):
     plt.figure(2)
     # Loss value
-    plt.subplot(411)
+    #plt.subplot(4,1,1)
     plt.plot(Bet_Model_History)
     plt.title('Average Loss')
+    plt.savefig('Plots/'+timestamp+'/avg_loss_bet_performance' + str(t) + '.eps', bbox_inches='tight')
+    plt.clf()
     # Scores
-    plt.subplot(412)
+    #plt.subplot(4,1,2)
     plt.plot(Average_Scores)
     plt.title('Average Score')
-    
-    plt.subplot(413)
+    plt.savefig('Plots/'+timestamp+'/avg_score_bet_performance' + str(t) + '.eps', bbox_inches='tight')
+    plt.clf()
+    #plt.subplot(4,1,3)
     bins = range(14);
     # Histogram of tricks
     plt.hist([Tricks[i][0] for i in range(-train_interval,0)], bins, alpha=0.5, label='Tricks')
@@ -31,17 +35,21 @@ def plot_bet_performance():
     plt.hist([Bets[i][0] for i in range(-train_interval,0)], bins, alpha=0.5, label='Bets')
     plt.legend(loc='upper right')
     plt.title('Player 1\'s Bets & Tricks')
-    
-    plt.subplot(414)
+    plt.savefig('Plots/'+timestamp+'/bets_tricks_bet_performance' + str(t) + '.eps', bbox_inches='tight')
+    plt.clf()
+
+    #plt.subplot(4,1,4)
     bins = range(-14,14)
     plt.hist([Tricks[i][0] - Bets[i][0] for i in range(-1000,0)], bins)
     plt.title('Player 1\'s Trick - Bet')
-    
+
     plt.tight_layout()
-    plt.show()
+    #plt.show()
+    plt.savefig('Plots/'+timestamp+'/trick_differential_bet_performance' + str(t) + '.eps', bbox_inches='tight')
+    plt.clf()
 
 # For fixed bets, plots the histogram of actual tricks won
-def plot_bet_distributions(t_start, t_end):
+def plot_bet_distributions(t_start, t_end,timestamp):
     plt.figure(4)
     tricks_per_bet = np.zeros((14,14))
     for t in range(t_start, t_end):
@@ -52,11 +60,12 @@ def plot_bet_distributions(t_start, t_end):
         plt.plot([j,j],[0,max(tricks_per_bet[j,:])])
         plt.title('Bet ' + str(j))
     plt.tight_layout()
-    plt.show()
-        
+    #plt.show()
+    plt.savefig('Plots/'+timestamp+'/bet_distributions' + str(t_start)+'_'+str(t_end) +  '.eps', bbox_inches='tight' )
+    plt.clf()
 
 # Plots the performance of the playing NN since last training
-def plot_action_performance():
+def plot_action_performance(timestamp,t):
     plt.figure(3)
     bins = range(14);
     # Histogram of tricks
@@ -68,8 +77,11 @@ def plot_action_performance():
     
     print np.mean(np.array(Tricks)[-train_interval/2:-1],0)
     
-    plt.show()
- 
+    #plt.show()
+    plt.savefig('Plots/' + timestamp + 'action_performance' + str(t) + '.eps', bbox_inches='tight')
+    plt.clf()
+
+
 # Returns a state dictionary from the game after applying the action that was
     # taken by player p in round rd.
 def update_state(p, rd):
@@ -107,10 +119,10 @@ def update_state(p, rd):
 #  INITIALIZATION OF VARIABLES  
 #-------------------------------
  # Number of rounds of play to run
-num_tests = 10000
+num_tests = 500000
 
 # Interval at which to train
-train_interval = num_tests/10;
+train_interval = num_tests/100;
 # Offset of training for betting and playing
 train_offset = train_interval/2;
 
@@ -162,7 +174,7 @@ hvh = keras.models.load_model('Models/Heuristic_v_Heuristic_bet_data_model_' + d
                                                    custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
 bet_models = [bet_model, hvh, bet_model, hvh]
 
-
+os.mkdir('Plots/'+timeString +'/')
 #--------------------------
 #  PLAY AND TRAIN
 #--------------------------
@@ -237,8 +249,8 @@ for t in range(1,num_tests+1):
         Average_Scores.append([sum([Scores[i][p] for i in training_range])/train_interval for p in range(4)]) # Average score when using the previous strategy
     
         # Plot the betting NN's performance
-        plot_bet_performance()
-        plot_bet_distributions(t- train_interval/2, t)
+        plot_bet_performance(timeString, t)
+        plot_bet_distributions(t- train_interval/2, t,timeString)
         
         print 'Done.'
     
@@ -253,7 +265,7 @@ for t in range(1,num_tests+1):
         action_model.fit(x_train_RL, np.asarray(y_train_RL), batch_size=batchsize, epochs = num_epochs, verbose=0)
         
         # Plot the playing NN's performance
-        plot_action_performance()
+        plot_action_performance(timeString,t)
         
         print 'Done.'
         

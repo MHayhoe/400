@@ -21,9 +21,10 @@ gvh = keras.models.load_model('Models/Greedy_v_Heuristic_bet_data_model_' + data
                                                    custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
 gvg = keras.models.load_model('Models/Greedy_v_Greedy_bet_data_model_' + datatype + '_model.h5',
                                                    custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
-timestr = '2018-04-17-21-14-15'
-timestr = '2018-04-18-23-42-38'
-iterations = 10000
+#timestr = '2018-04-17-21-14-15'
+#timestr = '2018-04-18-23-42-38'
+timestr = '2018-04-19-11-3-28'
+iterations = 100000
 
 nn_action_model = keras.models.load_model('Models/action_' + timestr + '_' + str(iterations) + '.h5',
                                           custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
@@ -60,12 +61,27 @@ def test_game(test_type):
         action_models = [nn_action_model, None, nn_action_model, None]
         bet_models = [nn_bet_model, hvh, nn_bet_model, hvh]
         num_iters = 10
-    elif test_type == 'nnvg':
+
+    elif test_type == 'hvnn':
+        strategies = [3, 4, 3, 4]
+        bet_strategies = ['model', 'model', 'model', 'model']
+        action_models = [None, nn_action_model,None,  nn_action_model]
+        bet_models = [hvh, nn_bet_model, hvh, nn_bet_model]
+        num_iters = 10
+
+    elif test_type == 'gvnn':
         strategies = [2,4,2,4]
         bet_strategies = ['model', 'model', 'model', 'model']
         action_models = [None, nn_action_model, None, nn_action_model]
         bet_models = [gvg, nn_bet_model,gvg,nn_bet_model]
         num_iters = 10
+    elif test_type == 'nnvg':
+        strategies = [4,2,4,2]
+        bet_strategies = ['model', 'model', 'model', 'model']
+        action_models = [ nn_action_model, None, nn_action_model,None]
+        bet_models = [ nn_bet_model,gvg,nn_bet_model,gvg]
+        num_iters = 10
+
     elif test_type == 'nnvr':
         strategies = [1,4,1,4]
         bet_strategies = ['none', 'model', 'none', 'model']
@@ -113,11 +129,10 @@ def test_game(test_type):
     #plt.plot(frac_won_by_nn)
     #plt.title('NN performance vs heuristic team')
     #plt.savefig('Plots/nn.png')
-    return wins_team2
+    return (wins_team1, wins_team2)
 
-nameString='results3.csv'
-for testtype in ['hvg', 'hvr', 'gvr', 'nnvh', 'nnvg', 'nnvr']:
-#for testtype in ['hvg','nnvh','nnvg']:
+nameString='results' + timestr + '.csv'
+for testtype in ['hvg', 'hvr', 'gvr', 'nnvh','hvnn', 'nnvg','gvnn', 'nnvr']:
     print testtype
     wins = test_game(testtype)
     print wins
