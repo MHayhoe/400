@@ -3,10 +3,10 @@ import keras
 import numpy as np
 import matplotlib.pyplot as plt
 from Loss import loss_bet, get_loss_bet
-
+import os
 
 # Number of full games to play
-num_games = 100
+num_games = 10
 wins_team1 = 0
 wins_team2 = 0
 datatype='matrix'
@@ -21,8 +21,8 @@ gvh = keras.models.load_model('Models/Greedy_v_Heuristic_bet_data_model_' + data
                                                    custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
 gvg = keras.models.load_model('Models/Greedy_v_Greedy_bet_data_model_' + datatype + '_model.h5',
                                                    custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
-timestr = '2018-04-20-14-3-42'
-iterations = 10000
+timestr = '2018-04-20-14-30-55'
+iterations = 40000
 
 
 nn_action_model = keras.models.load_model('Models/action_' + timestr + '_' + str(iterations) + '.h5',
@@ -59,40 +59,44 @@ def test_game(test_type):
         bet_strategies = ['model', 'model', 'model', 'model']
         action_models = [nn_action_model, None, nn_action_model, None]
         bet_models = [nn_bet_model, hvh, nn_bet_model, hvh]
-        num_iters = 10
+        num_iters = 1
 
     elif test_type == 'hvnn':
         strategies = [3, 4, 3, 4]
         bet_strategies = ['model', 'model', 'model', 'model']
         action_models = [None, nn_action_model,None,  nn_action_model]
         bet_models = [hvh, nn_bet_model, hvh, nn_bet_model]
-        num_iters = 10
+        num_iters = 1
 
     elif test_type == 'gvnn':
         strategies = [2,4,2,4]
         bet_strategies = ['model', 'model', 'model', 'model']
         action_models = [None, nn_action_model, None, nn_action_model]
         bet_models = [gvg, nn_bet_model,gvg,nn_bet_model]
-        num_iters = 10
+        num_iters = 1
     elif test_type == 'nnvg':
         strategies = [4,2,4,2]
         bet_strategies = ['model', 'model', 'model', 'model']
         action_models = [ nn_action_model, None, nn_action_model,None]
         bet_models = [ nn_bet_model,gvg,nn_bet_model,gvg]
-        num_iters = 10
+        num_iters = 1
 
     elif test_type == 'nnvr':
         strategies = [1,4,1,4]
         bet_strategies = ['none', 'model', 'none', 'model']
         action_models = [None, nn_action_model, None, nn_action_model]
         bet_models = [gvg, nn_bet_model,gvg,nn_bet_model]
-        num_iters = 10
+        num_iters = 1
 
     n=13
     wins_team1 = [0 for i in range(num_iters)]
     wins_team2 = [0 for i in range(num_iters)]
+    score_team1 = [0 for i in range(num_iters)]
+    score_team2 = [0 for i in range(num_iters)]
+
     #frac_won_by_nn = [0 for i in range(10)]
 
+    num_iters = 4
 #    nn_action_old = keras.models.load_model('Models/action_' + timestr + '_' + str(10000) + '.h5',
 #                                          custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
 #    nn_bet_old = keras.models.load_model('Models/bet_' + timestr + '_' + str(10000) + '.h5',
@@ -122,7 +126,8 @@ def test_game(test_type):
 
                 for p in range(4):
                     Total_Scores[p] += scores[p]
-
+                score_team1[i] = score_team1[i] + Total_Scores[0] + Total_Scores[2]
+                score_team2[i] = score_team2[i] + Total_Scores[1] + Total_Scores[3]
                 if (Total_Scores[0] >= 41 and Total_Scores[2] >= 0) or (Total_Scores[0] >= 0 and Total_Scores[2] >= 41):
                        wins_team1[i] += 1
                        #print 'Team 1 won'
@@ -145,8 +150,12 @@ def test_game(test_type):
     #plt.title('NN performance vs heuristic team')
     #plt.savefig('Plots/nn.png')
     return (wins_team1, wins_team2)
+if not os.path.exists('Results/'):
+    os.mkdir('Results/')
+if not os.path.exists('Results/' +timestr+'/'):
+    os.mkdir('Results/' +timestr+'/')
 
-nameString='results' + timestr + '.csv'
+nameString='Results/'+timestr + '/results.csv'
 for testtype in ['hvg', 'hvr', 'gvr', 'nnvh','hvnn', 'nnvg','gvnn', 'nnvr']:
     print testtype
     wins = test_game(testtype)

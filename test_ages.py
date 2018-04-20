@@ -4,9 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from Loss import loss_bet, get_loss_bet
 
-
+import os
 # Number of full games to play
-num_games = 100
+num_games = 10
 wins_team1 = 0
 wins_team2 = 0
 datatype='matrix'
@@ -37,7 +37,7 @@ def test_game(test_type, bet_strategies, action_models, bet_models):
 
         while True:
             #game = Game(n, strategies, bet_strategies, n, [action_model for i in range(4)], [bet_model for i in range(4)])
-            game = Game(n, strategies, bet_strategies, n, action_models, bet_models)
+            game = Game(n, strategies, bet_strategies, n, action_model_objects=action_models,bet_model_objects= bet_models)
             scores = game.playGame()
 
             for p in range(4):
@@ -68,7 +68,7 @@ def test_game(test_type, bet_strategies, action_models, bet_models):
     return (wins_team1, wins_team2,score_team1,score_team2)
 
 
-timestr='2018-04-19-17-44-9'
+timestr='2018-04-20-14-30-55'
 timestamp = timestr
 nameString='results' + timestr + '.csv'
 nn_v_h_frac_win = [0. for i in range(10)]
@@ -82,7 +82,7 @@ young_nn_action = keras.models.load_model('Models/action_' + timestr + '_' + str
                                           custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
 young_nn_bet = keras.models.load_model('Models/bet_' + timestr + '_' + str(10000) + '.h5',
                                        custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
-for i in range(10):
+for i in range(4):
     iterations = str((i + 1) * 10000)
     nn_action_model = keras.models.load_model('Models/action_' + timestr + '_' + str(iterations) + '.h5',
                                           custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
@@ -94,6 +94,9 @@ for i in range(10):
     bet_models = [nn_bet_model, hvh, nn_bet_model, hvh]
     wins = test_game('nnvh',bet_strategies,action_models,bet_models)
     nn_v_h_frac_win[i] = 1.0*wins[0]/num_games
+    total_score_nn[i] = wins[2]
+    total_score_h[i] = wins[3]
+
     print wins
     with open(nameString, "a") as output:
         np.savetxt('Plots/' + timestamp + '_results_nnvh_'+str(i)+'.csv', np.asarray(wins),delimiter=',')
@@ -103,13 +106,15 @@ for i in range(10):
     wins = test_game('nnvnn',bet_strategies,action_models,bet_models)
     nn2_v_young_nn_frac_win[i] = 1.0*wins[0]/num_games
     scores = wins[2]
+    nn_v_young_nn_score[i] = wins[2]
+    young_nn_score[i] = wins[3]
     with open(nameString, "a") as output:
         np.savetxt('Plots/' + timestamp + '_results_nnvnn_'+str(i)+'.csv', np.asarray(wins),delimiter=',')
 
 with open(nameString, "a") as output:
     np.savetxt('Plots/' + timestamp + '_results2'+'.csv', np.asarray([nn_v_h_frac_win,nn2_v_young_nn_frac_win, total_score_nn, young_nn_score, nn_v_young_nn_score ,young_nn_score]), delimiter=',', fmt='%i')
-
-
+if not os.path.exists('Plots/' +timestamp):
+    os.mkdir('Plots/' +timestamp)
 plt.figure(2)
 plt.plot(nn_v_h_frac_win)
 plt.title('Frac won vs heuristic')
