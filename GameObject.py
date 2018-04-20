@@ -221,6 +221,10 @@ class Game:
         self.H = [Hand(deck.deal(n)) for i in range(4)];
         # Make a separate list to save the initial hands
         self.initialHands = deepcopy(self.H);
+        if self.verbose:
+            for h in self.H:
+                h.sort()
+                print h
         self.H_history = [[[] for i in range(4)] for t in range(self.num_rounds)]
         self.h = [[None for i in range(4)] for t in range(self.num_rounds)]
         self.T = [-1 for i in range(self.num_rounds)]

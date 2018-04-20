@@ -106,10 +106,10 @@ def update_state(p, rd):
 #  INITIALIZATION OF VARIABLES  
 #-------------------------------
  # Number of rounds of play to run
-num_tests = 10000
+num_tests = 100000
 
 # Interval at which to train
-train_interval = num_tests/10;
+train_interval = 1000#num_tests/10;
 # Offset of training for betting and playing
 train_offset = train_interval/2;
 

@@ -21,7 +21,7 @@ gvh = keras.models.load_model('Models/Greedy_v_Heuristic_bet_data_model_' + data
                                                    custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
 gvg = keras.models.load_model('Models/Greedy_v_Greedy_bet_data_model_' + datatype + '_model.h5',
                                                    custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
-timestr = '2018-04-17-21-14-15'
+timestr = '2018-04-19-11-48-28'
 iterations = 100000
 
 nn_action_model = keras.models.load_model('Models/action_' + timestr + '_' + str(iterations) + '.h5',
@@ -73,12 +73,23 @@ def test_game(test_type):
         num_iters = 10
 
     n=13
-    wins_team1 = [0 for i in range(10)]
-    wins_team2 = [0 for i in range(10)]
+    wins_team1 = [0 for i in range(num_iters)]
+    wins_team2 = [0 for i in range(num_iters)]
     #frac_won_by_nn = [0 for i in range(10)]
 
-    for i in range(1):
-        #iterations = str((i+1)*10000)
+    for i in range(num_iters):
+        iterations = str((i+1)*10000)
+        
+        nn_action_model = keras.models.load_model('Models/action_' + timestr + '_' + str(iterations) + '.h5',
+                                          custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
+        nn_bet_model = keras.models.load_model('Models/bet_' + timestr + '_' + str(iterations) + '.h5',
+                                       custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
+
+        strategies = [4,3,4,3]
+        bet_strategies = ['model', 'model', 'model', 'model']
+        action_models = [nn_action_model, None, nn_action_model, None]
+        bet_models = [nn_bet_model, hvh, nn_bet_model, hvh]
+       
 
         for g in range(num_games):
             Total_Scores = [0 for p in range(4)]
@@ -100,9 +111,9 @@ def test_game(test_type):
                        #print 'Team 2 won'
                        break
                 #print scores
-                #print Total_Scores
-            #print 'game: ' + str(g)
             print Total_Scores
+            #print 'game: ' + str(g)
+            #print Total_Scores
         print 'Team 1 won' + str(wins_team1[i])
         print 'Team 2 won' + str(wins_team2[i])
         #frac_won_by_nn[i] = wins_team2[i]*1.0/num_games
