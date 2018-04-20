@@ -93,7 +93,7 @@ for i in range(10):
     action_models = [nn_action_model, None, nn_action_model, None]
     bet_models = [nn_bet_model, hvh, nn_bet_model, hvh]
     wins = test_game('nnvh',bet_strategies,action_models,bet_models)
-    nn_v_h_frac_win[i] = wins[0]/num_games
+    nn_v_h_frac_win[i] = 1.0*wins[0]/num_games
     print wins
     with open(nameString, "a") as output:
         np.savetxt('Plots/' + timestamp + '_results_nnvh_'+str(i)+'.csv', np.asarray(wins),delimiter=',')
@@ -101,7 +101,7 @@ for i in range(10):
     action_models = [ nn_action_model, young_nn_action, nn_action_model, young_nn_action]
     bet_models = [nn_bet_model, young_nn_bet, nn_bet_model, young_nn_bet]
     wins = test_game('nnvnn',bet_strategies,action_models,bet_models)
-    nn2_v_young_nn_frac_win[i] = wins[0]/num_games
+    nn2_v_young_nn_frac_win[i] = 1.0*wins[0]/num_games
     scores = wins[2]
     with open(nameString, "a") as output:
         np.savetxt('Plots/' + timestamp + '_results_nnvnn_'+str(i)+'.csv', np.asarray(wins),delimiter=',')
