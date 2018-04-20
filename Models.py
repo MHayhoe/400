@@ -7,7 +7,7 @@ from Loss import get_loss_bet
 
 # Initialize the NN optimizer and other parameters
 def initialize_parameters():
-    sgd = keras.optimizers.SGD(lr=.01,clipnorm=10.)
+    sgd = keras.optimizers.SGD(lr=.01,clipnorm=1.)
     opt = keras.optimizers.RMSprop(lr=.01,clipnorm=1.)
     batchsize = 128
     num_epochs = 20

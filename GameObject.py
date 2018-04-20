@@ -6,23 +6,23 @@ Created on Thu Mar 15 15:44:48 2018
 @author: Mikhail
 """
 import random as rnd
-from copy import copy, deepcopy
+from copy import deepcopy
 
 from Hand import Hand
 from Deck import Deck
 from Card import Card
 from AIPlayer import AIPlayer
-from heuristicAI import heuristicChoice
-from keras.models import Sequential
-from keras.layers import Dense, Activation, Dropout
-from keras.utils import to_categorical
-import keras
-from keras import backend as K
+#from heuristicAI import heuristicChoice
+#from keras.models import Sequential
+#from keras.layers import Dense, Activation, Dropout
+#from keras.utils import to_categorical
+#import keras
+#from keras import backend as K
 import numpy as np
 
 class Game:
     #hack - fix later! importing betmodel in game object
-    def __init__(self, num_rounds, strategy_vector, bet_vector, n=13, action_model_objects=[None, None, None, None], bet_model_objects = [None, None, None, None],genetic_parameter_list=[None,None,None,None]):
+    def __init__(self, num_rounds, strategy_vector, bet_vector, n=13, AIs=[None,None,None,None],action_model_objects=[None, None, None, None], bet_model_objects = [None, None, None, None],genetic_parameter_list=[None,None,None,None]):
         # type: (object, object, object) -> object
         self.num_rounds = num_rounds;
         self.player_strategy = strategy_vector;
@@ -30,7 +30,7 @@ class Game:
         self.n = n;
         #self.bet_models = betting_model_objects
         #self.action_models = 
-        self.aiplayers = [AIPlayer(self.player_strategy[i], self.bet_strategy[i], 'matrix', bet_model_objects[i], action_model_objects[i], genetic_parameter_list[i]) for i in range(4)]
+        self.aiplayers = [AIs[i] if AIs[i] is not None else AIPlayer(self.player_strategy[i], self.bet_strategy[i], 'matrix', bet_model_objects[i], action_model_objects[i], genetic_parameter_list[i]) for i in range(4)]
 
         # For tracking the state for the playing NN
         self.state = {'order': np.zeros((1,52)),'players': np.zeros((1,52))};
@@ -42,18 +42,6 @@ class Game:
             self.verbose = True;
         else:
             self.verbose = False;
-
-    #Variables
-    num_rounds = 13;
-
-    # Strategy for each player:
-    # 0:    human
-    # 1:    random - play a valid card at random
-    # 2:    highest - play the highest valid card
-    #player_strategy = [0, 2, 1, 1];
-    # Make a new deck, and shuffle it.
-    deck = Deck();
-    deck.shuffle();
 
 
     # ----- METHODS -----
@@ -110,42 +98,58 @@ class Game:
         
     # Returns the state for the playing NN
     def get_state(self, p, t):
-        self.state['hand'] = self.H[p].get_cards_binary(self.n)
-        self.state['tricks'] = np.reshape(self.tricks,(1,4));
-        self.state['lead'] = np.array(self.leads[t])
+        state = self.state
+        
+        state['hand'] = self.H[p].get_cards_binary(self.n)
+        state['lead'] = np.array(self.leads[t])
+        
+        # Change the state to be relative to this player
+        for i in range(self.n*4):
+            state['players'][0,i] = (self.state['players'][0,i] - (p + 1)) % 4 + 1
+        state['tricks'] = np.reshape(self.tricks[p:] + self.tricks[:p],(1,4));
+        state['bets'] = np.reshape(self.bets[p:] + self.bets[:p],(1,4));
                 
-        return self.state
+        return state
     
     # Returns the state in a form that's expected by the playing NN (builds from
     # scratch; should only be used externally to save training data)
     def action_state(self, player, current_round):
         count = 1;
-        self.state['order'] = np.zeros((1,52));
-        self.state['players'] = np.zeros((1,52));
+        state = {}
+        state['order'] = np.zeros((1,52));
+        state['players'] = np.zeros((1,52));
         
         # Loop through previous rounds
         for t in range(current_round):
             for p in self.play_order[t]:
                 c = self.h[t][p];
                 if c is not None:
-                    self.state['order'][0,c.suit*self.n + c.value-2] = count;
+                    state['order'][0,c.suit*self.n + c.value-2] = count;
                     count = count + 1;
-                    self.state['players'][0,c.suit*self.n + c.value-2] = p + 1;
+                    state['players'][0,c.suit*self.n + c.value-2] = p + 1;
         
-        # Loop through current round, until 'player'
+        # Loop through current round, up to and including 'player'
         for p in self.play_order[current_round]:
+            c = self.h[current_round][p];
+            state['order'][0,c.suit*self.n + c.value-2] = count;
+            count = count + 1;
+            state['players'][0,c.suit*self.n + c.value-2] = p + 1;
             if p == player:
                 break
-            c = self.h[current_round][p];
-            self.state['order'][0,c.suit*self.n + c.value-2] = count;
-            count = count + 1;
-            self.state['players'][0,c.suit*self.n + c.value-2] = p + 1;
             
-        self.state['hand'] = self.H_history[current_round][p].get_cards_binary(self.n)
-        self.state['tricks'] = np.reshape(self.tricks,(1,4));
-        self.state['lead'] = np.array(self.leads[current_round])
+        # Find tricks up until now
+        tricks = [sum([self.T[t] == p for t in range(current_round+1)]) for p in range(4)]
         
-        return self.state
+        # Change the state to be relative to this player
+        for i in range(self.n*4):
+            state['players'][0,i] = (state['players'][0,i] - (p + 1)) % 4 + 1
+        state['tricks'] = np.reshape(tricks[p:] + tricks[:p],(1,4));
+        state['bets'] = np.reshape(self.bets[p:] + self.bets[:p],(1,4));  
+        
+        state['hand'] = self.H_history[current_round][p].get_cards_binary(self.n)
+        state['lead'] = np.array(self.leads[current_round])
+        
+        return state
     
     
     # To handle AI decisions for player p
@@ -221,6 +225,10 @@ class Game:
         self.H = [Hand(deck.deal(n)) for i in range(4)];
         # Make a separate list to save the initial hands
         self.initialHands = deepcopy(self.H);
+        if self.verbose:
+            for h in self.H:
+                h.sort()
+                print h
         self.H_history = [[[] for i in range(4)] for t in range(self.num_rounds)]
         self.h = [[None for i in range(4)] for t in range(self.num_rounds)]
         self.T = [-1 for i in range(self.num_rounds)]
@@ -237,9 +245,6 @@ class Game:
         # Get the bets
         self.bettingRound();
         self.initialbets = self.bets;
-        
-        # Save the bets in the state
-        self.state['bets'] = np.reshape(self.bets,(1,4));
         
         # Initialize some state-dependent metrics to pass to AI
         self.card_played_by = {card.__str__():None for card in Deck().cards}
