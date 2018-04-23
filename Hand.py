@@ -1,16 +1,11 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Mar 15 14:15:52 2018
-
-@author: Mikhail
-"""
 from Card import Card
 import numpy as np
+
+
 class Hand:
-    # cards - list of Card objects, representing what's in the hand.
-    
     # Constructor; set the cards by the given list of cards, empty by default.
     def __init__(self, list=[]):
+        # cards - list of Card objects, representing what's in the hand.
         self.cards = list;
     
     # Remove a card from the hand, if it exists
@@ -46,6 +41,7 @@ class Hand:
         else: # No cards of lead suit, so all are valid
             return self.cards;
 
+
     # ----- PRINTING METHODS -----
     # String representation
     def __str__(self):
@@ -61,6 +57,7 @@ class Hand:
             sorted_list = sorted_list + suit_cards
         return Card.printList(sorted_list)
     
+    
     #------ COUNTING METHODS -----
     # Count number of cards in each suit
     def suit_count(self):
@@ -72,20 +69,10 @@ class Hand:
     # Count number of aces in each suit
     def ace_by_suit(self):
         return self.card_ct(14);
-        #ace_ct = {i: 0 for i in range(4)}
-        #for card in self.cards:
-        #    if card.value==14:
-        #        ace_ct[card.suit] +=1
-        #return ace_ct
     
     # Count number of kings in each suit
     def king_by_suit(self):
         return self.card_ct(13);
-        #king_ct = {i: 0 for i in range(4)}
-        #for card in self.cards:
-        #    if card.value==13:
-        #        king_ct[card.suit] +=1
-        #return king_ct
     
     # Count number of a specific card in each suit
     def card_ct(self,card_val):
@@ -99,6 +86,7 @@ class Hand:
     def trump_ct(self):
         return sum( card.trump==card.suit for card in self.cards)
     
+    
     #------ SUIT-BASED METHODS -----
     # Get all cards of a given suit
     def get_suit(self,suit):
@@ -107,7 +95,10 @@ class Hand:
     # Get the largest cards from each suit
     def max_suit(self,suit):
         return max(self.get_suit(suit))
+    
+    
     #------ DATA CONVERSION -----
+    # Returns cards as a 52-length binary vector
     def get_cards_as_binary(self):
         x_binary = np.zeros(52).astype(int)
         for c in range(len(self.cards)):
@@ -116,7 +107,17 @@ class Hand:
             suit = card.suit
             x_binary[value + 4 * suit] = 1
         return x_binary
+    
+    # Returns cards as a 1-by-52 length binary vector (correct dimensions for
+    # NN).
+    def get_cards_binary(self,n):
+        binvec = np.zeros((1,52))
+        for c in self.cards:
+            binvec[0,c.suit*n + c.value - 2] = 1
+        return binvec
 
+    # Returns the cards as a list of values then suits, sorted in descending
+    # order.
     def get_cards_as_val_suit_sorted(self):
         vals_sorted = np.zeros(13).astype(int)
         suits_sorted = np.zeros(13).astype(int)
@@ -129,6 +130,8 @@ class Hand:
             suits_sorted[c] = suit
         x_obs = np.concatenate([vals_sorted, suits_sorted])
         return x_obs
+    
+    # Returns the cards as a list of values then suits.
     def get_cards_as_val_suit(self):
         vals = np.zeros(13).astype(int)
         suits = np.zeros(13).astype(int)
@@ -140,6 +143,8 @@ class Hand:
             suits_sorted[c] = suit
         x_obs = np.concatenate([vals, suits])
         return x_obs
+    
+    # Returns the cards as value-suit pairs in one list.
     def get_cards_as_interleave(self):
         vals = np.zeros(13).astype(int)
         suits = np.zeros(13).astype(int)
@@ -152,6 +157,8 @@ class Hand:
         x_interleave = np.array([val for pair in zip(vals, suits) for val in pair]).astype(int)
         return x_interleave
 
+    # Returns the cards as value-suit pairs in one list, sorted in descending
+    # order.
     def get_cards_as_interleave_sorted(self):
         vals_sorted = np.zeros(13).astype(int)
         suits_sorted = np.zeros(13).astype(int)
@@ -164,21 +171,17 @@ class Hand:
             suits_sorted[c] = suit
         x_interleave_sorted = np.array([val for pair in zip(vals_sorted, suits_sorted) for val in pair]).astype(int)
         return x_interleave_sorted
+    
     # Returns a 4-by-13 binary matrix with ones for cards existing in the hand
     def get_cards_as_matrix(self):
         binmat = np.zeros((4,13))
         for c in self.cards:
             binmat[c.suit, c.value-2] = 1
         return np.reshape(binmat, (4,13,1))
+    
     # Returns a 52-bit binary in the same order as the matrix order
     def get_cards_matrix_order(self):
         binmat = np.zeros((4,13))
         for c in self.cards:
             binmat[c.suit, c.value-2] = 1
         return binmat
-    
-    def get_cards_binary(self,n):
-        binvec = np.zeros((1,52))
-        for c in self.cards:
-            binvec[0,c.suit*n + c.value - 2] = 1
-        return binvec

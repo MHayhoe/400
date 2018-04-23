@@ -1,10 +1,3 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Apr 12 11:29:52 2018
-
-@author: Mikhail
-"""
 from keras import backend as K
 import keras
 
@@ -25,5 +18,4 @@ def get_loss_bet():
 # could have gotten minus what we lost, i.e., y_true + y_pred
 # (since -1*(-bet) = bet)
 def loss_bet(y_true, y_pred):
-    #return K.square(y_true - y_pred)
     return K.square(y_true + K.sign(y_pred - y_true) * y_pred)

@@ -1,19 +1,11 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Mar 20 00:13 2018
-
-@author: Hadi
-"""
-from Hand import Hand
 from Deck import Deck
 from Card import Card
-from pprint import pprint
 
 
 import random as rnd
-#def heuristicChoice(p,valid_cards, card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by,position):
 
-def heuristicChoice(p,position,valid_cards, cards_played_by,cards_this_round,suit_trumped_by,bet_deficits):
+# Pick a card to play from valid_cards, using a heuristic strategy.
+def heuristicChoice(p,position,valid_cards,cards_played_by,cards_this_round,suit_trumped_by,bet_deficits):
     pos = position +1
     partner = (p+2)%4
     leadsuit = valid_cards[0].lead
@@ -25,21 +17,12 @@ def heuristicChoice(p,position,valid_cards, cards_played_by,cards_this_round,sui
     cur_max = current_max_card(cards_this_round)
     current_winner = currently_winning_player(cur_max, cards_this_round)
     chosen_card = choose_card(p,pos,cur_max, valid_cards, current_winner, lead_cards,trump_cards, throwaway_cards,partner,bet_deficits,suit_trumped_by,cards_played_by)
-    #print 'valid cards: '
-    #pprint( [str(card) for card in valid_cards])
     if chosen_card is None:
-        #print 'warning: chosen card was none'
         return rnd.randint(0,len(valid_cards)-1)
-    #print chosen_card
-    #print [str(card) for card in valid_cards]
     chosen_card_valid_idx = None
     for i in range(0,len(valid_cards)):
-        #print 'range check'
-        #print str(chosen_card)
-        #print str(valid_cards[i])
         if str(chosen_card)== str(valid_cards[i]):
             chosen_card_valid_idx=i
-    #print chosen_card_valid_idx
     if chosen_card_valid_idx is None:
         print 'warning: chosen card index was none'
         print chosen_card_valid_idx
@@ -51,7 +34,7 @@ def heuristicChoice(p,position,valid_cards, cards_played_by,cards_this_round,sui
 
     
 # Pick a card to play
-def choose_card(p,pos,cur_max,valid_cards,winner, suitc,trumpc, throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
+def choose_card(p,pos,cur_max,valid_cards,winner,suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
     if pos == 1:
         choice = move_first(p,cur_max, valid_cards,winner,suitc,trumpc, throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
     elif pos == 2:
@@ -61,14 +44,12 @@ def choose_card(p,pos,cur_max,valid_cards,winner, suitc,trumpc, throwc,prtner_id
     elif pos == 4:
         choice = move_fourth(p,cur_max,valid_cards,winner, suitc,trumpc, throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
 
-    #print 'chosen card : ' +str( choice)
     return choice
 
 
 # ----- ORDERED PLAYING METHODS -----
 # If the AI is going first
 def move_first(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
-    #choice = choose_random(valid_cards)
     max_val = -1
     max_card = None
     choice = None
@@ -82,13 +63,11 @@ def move_first(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_
 
 # If the AI is going second
 def move_second(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
-    #choice = choose_random
     choice = move_not_last(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
     return choice
 
 # If the AI is going third
 def move_third(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by):
-    #choice = choose_random(valid_cards)
     choice = move_not_last(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_deficits,suit_trumped_by,cards_played_by)
     return choice
 
@@ -111,23 +90,17 @@ def move_not_last(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,b
     #if partner is not winning, try to win if possible, or throw lowest card
     if winner!=prtner_idx:
         if winnable is not None:
-            #print 'winnable: ' + str(winnable)
-            #print 'safe?: ' + str(winnable_safe)
             if winnable_safe == True:
                 return winnable
             else:
                 return losable
         else:
-            #print 'Winnable: ' + str(winnable)
-            #print 'losable: ' + str(losable)
             return losable
     #if partner is winning, try to win if partners deficit is less than own
     else:
         if bet_deficits[prtner_idx]<bet_deficits[p] and winnable is not None and winnable_safe==True:
-            #print 'take from partner - sorry! :' + str(winnable)
             return winnable
         else:
-            #print 'give to partner : ' + str(losable)
             return losable
         
 # If the AI is going last
@@ -138,20 +111,14 @@ def move_last(p,cur_max,valid_cards,winner, suitc,trumpc,throwc,prtner_idx,bet_d
     #if partner is not winning, try to win if possible, or throw lowest card
     if winner!=prtner_idx:
         if winnable is not None:
-            #print 'winnable: ' + str(winnable)
-            #print 'safe?: ' + 'moving last - always safe'
             choice = winnable
         else:
-            #print 'Winnable: ' + str(winnable)
-            #print 'losable: ' + str(losable)
             choice = losable
     #if partner is winning, try to win if partners deficit is less than own
     else:
         if bet_deficits[prtner_idx]<bet_deficits[p] and winnable is not None:
-            #print 'take from partner - sorry! :' + str(winnable)
             choice = winnable
         else:
-            #print 'give to partner : ' + str(losable)
             choice = losable
     return choice
 
@@ -207,7 +174,8 @@ def min_throwable(suitc,throwc,trumpc):
         return min(throwc)
     else:
         return min(trumpc)
-##determine the minimum card that can win the current hand, if one exists
+    
+# Determine the minimum card that can win the current hand, if one exists
 def min_winnable(max_card,suitc,trumpc):
     if len(suitc)>0:
         return min_lead_suit_gt_card(suitc,max_card)
@@ -228,7 +196,7 @@ def suit_broken(cards_played,suit):
 def choose_random(valid_cards):
     return valid_cards[rnd.randint(0,len(valid_cards)-1)]
 
-## Determine whether a card is 'safe' to play, i.e. not the case that higher of the lead suit are out there and not the case that suit is known to be trumped by opponents
+# Determine whether a card is 'safe' to play, i.e. not the case that higher of the lead suit are out there and not the case that suit is known to be trumped by opponents
 def determine_safe(cards_played_by,card_considered,partner,suit_trumped_by):
     higher_cards = card_considered.get_higher_cards()
     trumpers = suit_trumped_by[card_considered.suit]
@@ -241,6 +209,8 @@ def determine_safe(cards_played_by,card_considered,partner,suit_trumped_by):
         if len(higher_of_suit)>0:
             return False
     return True
+
+# Make a bet on how many tricks will be won
 def heuristicBet(hand):
     bet = min(sum(hand.ace_by_suit().values()) + sum(hand.king_by_suit().values()) + round(hand.trump_ct()/4), 13)
     return bet

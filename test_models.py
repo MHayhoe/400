@@ -82,31 +82,31 @@ def plot_action_performance(timestamp,t):
     plt.savefig('Plots/' + timestamp + 'action_performance' + str(t) + '.eps', bbox_inches='tight')
     plt.clf()
 
-
-
+# Creates AI objects to be used for playing games, with epsilon value depending
+    # on round t.
 def makeAIs(t):
     AIs = [None for p in range(4)]
     # Make new AIPlayer objects to refresh its model
     for p in range(4):
         if strategies[p] == 4:
             AIs[p] = AIPlayer(strategies[p],bet_strategies[p],'matrix',bet_model,action_model,None,0.05**(t/train_interval/10 + 1))
+        elif bet_strategies[p] == 'model':
+            AIs[p] = AIPlayer(strategies[p],bet_strategies[p],'matrix',bet_models[p],None,None,0)
         else:
             AIs[p] = AIPlayer(strategies[p],bet_strategies[p],'matrix',None,None,None,0)
 
     return AIs
 
 
-
 #-------------------------------
 #  INITIALIZATION OF VARIABLES  
 #-------------------------------
  # Number of rounds of play to run
-
 num_tests = 100000
 
 # Interval at which to train
 
-train_interval = 1000#num_tests/10;
+train_interval = 1000
 # Offset of training for betting and playing
 train_offset = train_interval/2;
 
@@ -142,6 +142,7 @@ Average_Scores = []
 # Save the current time
 tempTime = dt.datetime.now().time();
 timeString = str(dt.datetime.now().date())+'-'+str(tempTime.hour)+'-'+str(tempTime.minute)+'-'+str(tempTime.second);
+os.mkdir('Plots/'+timeString +'/')
 
 
 #----------------------------------
@@ -153,12 +154,13 @@ timeString = str(dt.datetime.now().date())+'-'+str(tempTime.hour)+'-'+str(tempTi
 # Initialize the Neural Nets
 bet_model = construct_bet_NN(n)
 action_model = construct_play_NN(n)
+
 datatype='matrix'
 hvh = keras.models.load_model('Models/Heuristic_v_Heuristic_bet_data_model_' + datatype + '_model.h5',
                                                    custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
 bet_models = [bet_model, hvh, bet_model, hvh]
 
-os.mkdir('Plots/'+timeString +'/')
+
 #--------------------------
 #  PLAY AND TRAIN
 #--------------------------
@@ -178,7 +180,6 @@ for t in range(1,num_tests+1):
     
     # Play the game
     game = Game(n, strategies, bet_strategies, n, AIs)
-    #game = Game(n, strategies, bet_strategies, n, [action_model for i in range(4)], [bet_model for i in range(4)])
     scores = game.playGame()
     
     # Save the scores for each team
@@ -215,13 +216,12 @@ for t in range(1,num_tests+1):
         # Save the game state as training data for the playing NN
         for rd in range(n):
             # Get and update the game state based on the action taken
-            state = game.action_state(p, rd) #update_state(p, rd)
+            state = game.action_state(p, rd)
             for key in state:
                 x_train_RL[key].append(state[key])
             # REWARD:
             my_team_score = int(game.T[rd]==p or game.T[rd]==((p+2)%4))
             discounted_reward = gamma**(n - 1 - rd)*(scores[p] + scores[(p+2)%4])
-            #y_train_RL.append(discounted_reward + my_team_score)
             y_train_RL.append(discounted_reward + my_team_score)
     
     # Train the betting NN
@@ -278,4 +278,3 @@ for t in range(1,num_tests+1):
         bet_model.save('./Models/bet_' + timeString + '_' + str(t) + '.h5')
 
 Total_Scores = [sum([Scores[i][p] for i in range(num_tests)]) for p in range(4)]
-

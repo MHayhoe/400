@@ -1,12 +1,7 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Mar 15 14:45:12 2018
-
-@author: Mikhail
-"""
 import random as rnd
 from Card import Card
-from Card import Card
+
+
 class Deck:
     # Constructor; make all possible cards in the deck, assuming a max value of n (default is 13).
     def __init__(self,n=13):
@@ -15,7 +10,6 @@ class Deck:
         # Add all cards to the deck
         for s in range(0,4):
             for v in range(2,n+2):
-
                 self.cards.append(Card(v, s))
     
     # Shuffles the deck          

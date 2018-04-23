@@ -1,13 +1,8 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Mar 15 11:36:28 2018
-
-@author: Mikhail
-"""
 import numpy as np
 
+
 class Card:
-    # ----- CLASS VARIABLES -----
+    # ----- STATIC CLASS VARIABLES -----
     # lead:     current lead suit
     # trump:    current trump suit
     lead = -1; # default lead suit is none
@@ -15,8 +10,8 @@ class Card:
     
     
     # ----- OBJECT VARIABLES -----
-    # value:    value of the card. 11 = Jack, 12 = Queen, 13 = King, 14 = Ace.
-    # suit:     suit of the card. 0 = Clubs, 1 = Diamonds, 2 = Hearts, 3 = Spades.
+    # value: value of the card. 11 = Jack, 12 = Queen, 13 = King, 14 = Ace.
+    # suit:  suit of the card. 0 = Clubs, 1 = Diamonds, 2 = Hearts, 3 = Spades.
     
     # Constructor; default is Ace of Spades.
     def __init__(self, v=14, s=3):
@@ -74,6 +69,7 @@ class Card:
         
         return string[0:-2];
 
+    # Returns all cards that have a higher value than itself.
     def get_higher_cards(self):
         higher_cards = []
 
@@ -84,6 +80,7 @@ class Card:
                 higher_cards.append(Card(i, self.trump))
         return higher_cards
     
+    # Returns itself as a 1-by-n*4 binary vector with a 1 for this card.
     def as_action(self, n):
         bin_card = [0 for i in range(n*4)]
         bin_card[(self.value - 1) + self.suit*n - 1] = 1;

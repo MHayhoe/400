@@ -1,36 +1,24 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Mar 15 15:44:48 2018
-
-@author: Mikhail
-"""
 import random as rnd
 from copy import deepcopy
+import numpy as np
 
 from Hand import Hand
 from Deck import Deck
 from Card import Card
 from AIPlayer import AIPlayer
-#from heuristicAI import heuristicChoice
-#from keras.models import Sequential
-#from keras.layers import Dense, Activation, Dropout
-#from keras.utils import to_categorical
-#import keras
-#from keras import backend as K
-import numpy as np
+
 
 class Game:
-    #hack - fix later! importing betmodel in game object
+    # Constructor to build a new Game object
     def __init__(self, num_rounds, strategy_vector, bet_vector, n=13, AIs=[None,None,None,None],action_model_objects=[None, None, None, None], bet_model_objects = [None, None, None, None],genetic_parameter_list=[None,None,None,None]):
         # type: (object, object, object) -> object
         self.num_rounds = num_rounds;
         self.player_strategy = strategy_vector;
         self.bet_strategy = bet_vector;
         self.n = n;
-        #self.bet_models = betting_model_objects
-        #self.action_models = 
-        self.aiplayers = [AIs[i] if AIs[i] is not None else AIPlayer(self.player_strategy[i], self.bet_strategy[i], 'matrix', bet_model_objects[i], action_model_objects[i], genetic_parameter_list[i]) for i in range(4)]
+        self.aiplayers = [AIs[i] if AIs[i] is not None else
+                          AIPlayer(self.player_strategy[i], self.bet_strategy[i], 'matrix', bet_model_objects[i], action_model_objects[i], genetic_parameter_list[i])
+                          for i in range(4)]
 
         # For tracking the state for the playing NN
         self.state = {'order': np.zeros((1,52)),'players': np.zeros((1,52))};
@@ -84,19 +72,19 @@ class Game:
         print 'Player ' + str(p + 1) + '\'s Hand: ' + str(self.H[p])
         bet = input('Bet tricks to take: ')
         
-        while not(bet>1):
-            #ask for new bet
+        while not(bet>=2):
+            #Ask for new bet
             bet = input('The minimum bet is 2. Bet: ')
             
         return bet
     
-    # Returns the state in a form that's expected by the playing NN
+    # Update the running dictionary of the state
     def update_state(self, p, t):
         c = self.h[t][p];
         self.state['order'][0,c.suit*self.n + c.value-2] = np.max(self.state['order']) + 1;
         self.state['players'][0,c.suit*self.n + c.value-2] = p + 1;
         
-    # Returns the state for the playing NN
+    # Returns the state for the playing NN, used during the play of a game
     def get_state(self, p, t):
         state = self.state
         
@@ -111,8 +99,8 @@ class Game:
                 
         return state
     
-    # Returns the state in a form that's expected by the playing NN (builds from
-    # scratch; should only be used externally to save training data)
+    # Returns the state in a form that's expected by the playing NN (builds
+    # from scratch; should only be used externally to save training data)
     def action_state(self, player, current_round):
         count = 1;
         state = {}
@@ -151,52 +139,26 @@ class Game:
         
         return state
     
-    
-    # To handle AI decisions for player p
-    #old def aiInput(self, p, strategy,valid_cards, card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by,position):
-        #if strategy == 3: #simple heuristic
-        #    valid_idx= heuristicChoice(p,valid_cards,card_played_by,cards_this_round,suit_trumped_by,bet_deficits,cards_played_by,position)
-            #print self.H[p].cards[self.H[p].validToRealIndex(valid_idx) ]
-        #    return self.H[p].play( self.H[p].validToRealIndex(valid_idx) )
-        #if strategy == 2: # Myopic Greedy: pick the highest playable card every time
-            # Sort the hand, so when we pick a valid card it will be the biggest valid card
-        #    self.H[p].sort()
-         #   return self.H[p].play( self.H[p].validToRealIndex(0) );
-        #else: # Random choice
-            # Pick a valid card at random
-         #   ind = rnd.randint( 0, len(self.H[p].validCards()) - 1 )
-          #  return self.H[p].play( self.H[p].validToRealIndex(ind) )
-          
+    # To handle AI input for player p     
     def aiInput(self, p, current_round, strategy, valid_cards):
-        # if strategy == 1: #
-        #     ind = rnd.randint( 0, len(self.H[p].validCards()) - 1 )
-        #     return self.H[p].play( self.H[p].validToRealIndex(ind) )
-        # elif strategy == 2:
-        #     self.H[p].sort()
-        #     return self.H[p].play( self.H[p].validToRealIndex(0) );
         if strategy == 3: # Simple heuristic
             state = [self.play_order[current_round].index(p),self.card_played_by,self.cards_this_round,self.suit_trumped_by,self.bet_deficits]
         elif strategy == 4: # Playing NN
-            state = self.get_state(p, current_round)#self.action_state(p, current_round)
+            state = self.get_state(p, current_round)
         elif strategy == 5: #playing genetic
-            state = self.get_state(p, current_round)#self.action_state(p, current_round)
+            state = self.get_state(p, current_round)
         else: # Don't need the state, e.g. random, greedy
             state = []
+        # Check if we care about the current winning card (to determine who wins a trick)
         if (np.max(self.state['order']) + 1) % 4 == 0: # 3 cards have been played this trick
             current_winner = np.max([cc for cc in self.h[current_round] if cc is not None])
         else:
             current_winner = None
         return self.H[p].play(self.H[p].validToRealIndex( self.aiplayers[p].get_action(self.n, p, state, valid_cards, current_winner) ));
 
-
     #To handle AI bets for player p
     def aiBet(self, p, strategy=1):
         return self.aiplayers[p].get_bet(self.H[p])
-       
-
-    def heuristicBet(self, p):
-        bet = min(sum(self.H[p].ace_by_suit().values()) + sum(self.H[p].king_by_suit().values()) + round(self.H[p].trump_ct()/4), 13)
-        return bet
 
     # Find the winning player from a trick
     def winner(self, cards):
@@ -274,7 +236,6 @@ class Game:
                 if self.player_strategy[p] == 0: # Ask for human input
                     self.h[t][p] = self.humanInput(p);
                 else:                   # Ask for AI input with strategy in player_strategy[p]
-                    #old: self.h[t][p] = self.aiInput(p, self.player_strategy[p], self.H[p].validCards(),card_played_by,cards_this_round,suit_trumped_by,bet_deficits,card_played_by,position+1);
                     self.h[t][p] = self.aiInput(p, t, self.player_strategy[p], self.H[p].validCards());
                 # Set the lead suit, if it hasn't been yet
                 if Card.lead == -1:
@@ -288,7 +249,7 @@ class Game:
                 self.printVerbose(str(p + 1) + ':  ' + str(self.h[t][p]))
                 self.printVerbose('')
                 
-                #update
+                # Update
                 self.cards_this_round[p] = self.h[t][p]
                 #update the card_played_by dict
                 self.card_played_by[str(self.h[t][p])]=p
@@ -302,7 +263,6 @@ class Game:
             self.T[t] = self.winner(self.h[t]);
             self.tricks[self.T[t]] = self.tricks[self.T[t]] + 1;
             self.printVerbose('Player ' + str(self.T[t] + 1) + ' won the trick.')
-            #print bet_deficits[self.T[t]];
             self.bet_deficits[self.T[t]] -= 1;
 
     def getFinalScores(self, bets, T):
@@ -310,7 +270,6 @@ class Game:
         for p in range(4):
             tricks_p = sum(T[t] ==p for t in range(13))
             bet_p = bets[p]
-            #self.printVerbose(bets[p])
             chg_score = (2*(tricks_p>= bet_p)-1)*bet_p
             self.printVerbose('Player ' + str(p) + ' bet ' +str(bet_p) + ' and won ' +str(tricks_p) + ' for a total of ' + str(chg_score))
             scores[p]=chg_score
@@ -319,13 +278,7 @@ class Game:
     # Play the game. Call this method to run the game externally.
     def playGame(self):
         self.playRound()
-        #self.printVerbose(self.bets)
         return(self.getFinalScores(self.bets, self.T))
         
     def getTricks(self):
         return self.tricks
-#        tricks = [-1,-1,-1,-1]
-#        for p in range(4):
-#            tricks_p = sum(self.T[t] ==p for t in range(13))
-#            tricks[p] = tricks_p
-#        return tricks
