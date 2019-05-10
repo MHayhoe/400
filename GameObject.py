@@ -130,11 +130,11 @@ class Game:
         
         # Change the state to be relative to this player
         for i in range(self.n*4):
-            state['players'][0,i] = (state['players'][0,i] - (p + 1)) % 4 + 1
-        state['tricks'] = np.reshape(tricks[p:] + tricks[:p],(1,4));
-        state['bets'] = np.reshape(self.bets[p:] + self.bets[:p],(1,4));  
+            state['players'][0,i] = (state['players'][0,i] - (player + 1)) % 4 + 1
+        state['tricks'] = np.reshape(tricks[player:] + tricks[:player],(1,4));
+        state['bets'] = np.reshape(self.bets[player:] + self.bets[:player],(1,4));  
         
-        state['hand'] = self.H_history[current_round][p].get_cards_binary(self.n)
+        state['hand'] = self.H_history[current_round][player].get_cards_binary(self.n)
         state['lead'] = np.array(self.leads[current_round])
         
         return state
@@ -154,6 +154,10 @@ class Game:
             current_winner = np.max([cc for cc in self.h[current_round] if cc is not None])
         else:
             current_winner = None
+        potential_states = self.aiplayers[p].get_potential_states(self.num_rounds, p, state, valid_cards, current_winner)
+        values = self.aiplayers[p].action_model.predict(potential_states)
+        for x in range(len(values)):
+            self.printVerbose(str(valid_cards[x]) + ': ' + str(values[x]))
         return self.H[p].play(self.H[p].validToRealIndex( self.aiplayers[p].get_action(self.n, p, state, valid_cards, current_winner) ));
 
     #To handle AI bets for player p

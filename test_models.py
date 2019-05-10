@@ -3,12 +3,13 @@ import random as rnd
 import datetime as dt
 import matplotlib.pyplot as plt
 import keras
+import os
+
 from GameObject import Game
 from AIPlayer import AIPlayer
 from Models import initialize_parameters, construct_bet_NN, construct_play_NN
 from Loss import batch_loss_history
 from Loss import loss_bet,get_loss_bet
-import os
 
 #--------------------------
 #  HELPER METHODS
@@ -17,18 +18,20 @@ import os
 def plot_bet_performance(timestamp, t):
     plt.figure(2)
     # Loss value
-    #plt.subplot(4,1,1)
+    plt.subplot(4,1,1)
     plt.plot(Bet_Model_History)
     plt.title('Average Loss')
     plt.savefig('Plots/'+timestamp+'/avg_loss_bet_performance' + str(t) + '.eps', bbox_inches='tight')
-    plt.clf()
+    #plt.clf()
+    
     # Scores
-    #plt.subplot(4,1,2)
+    plt.subplot(4,1,2)
     plt.plot(Average_Scores)
     plt.title('Average Score')
     plt.savefig('Plots/'+timestamp+'/avg_score_bet_performance' + str(t) + '.eps', bbox_inches='tight')
-    plt.clf()
-    #plt.subplot(4,1,3)
+    #plt.clf()
+    
+    plt.subplot(4,1,3)
     bins = range(14);
     # Histogram of tricks
     plt.hist([Tricks[i][0] for i in range(-train_interval,0)], bins, alpha=0.5, label='Tricks')
@@ -37,17 +40,17 @@ def plot_bet_performance(timestamp, t):
     plt.legend(loc='upper right')
     plt.title('Player 1\'s Bets & Tricks')
     plt.savefig('Plots/'+timestamp+'/bets_tricks_bet_performance' + str(t) + '.eps', bbox_inches='tight')
-    plt.clf()
+    #plt.clf()
 
-    #plt.subplot(4,1,4)
+    plt.subplot(4,1,4)
     bins = range(-14,14)
     plt.hist([Tricks[i][0] - Bets[i][0] for i in range(-1000,0)], bins)
     plt.title('Player 1\'s Trick - Bet')
 
     plt.tight_layout()
-    #plt.show()
+    plt.show()
     plt.savefig('Plots/'+timestamp+'/trick_differential_bet_performance' + str(t) + '.eps', bbox_inches='tight')
-    plt.clf()
+    #plt.clf()
 
 # For fixed bets, plots the histogram of actual tricks won
 def plot_bet_distributions(t_start, t_end,timestamp):
@@ -61,7 +64,7 @@ def plot_bet_distributions(t_start, t_end,timestamp):
         plt.plot([j,j],[0,max(tricks_per_bet[j,:])])
         plt.title('Bet ' + str(j))
     plt.tight_layout()
-    #plt.show()
+    plt.show()
     plt.savefig('Plots/'+timestamp+'/bet_distributions' + str(t_start)+'_'+str(t_end) +  '.eps', bbox_inches='tight' )
     plt.clf()
 
@@ -78,7 +81,7 @@ def plot_action_performance(timestamp,t):
     
     print np.mean(np.array(Tricks)[-train_interval/2:-1],0)
     
-    #plt.show()
+    plt.show()
     plt.savefig('Plots/' + timestamp + 'action_performance' + str(t) + '.eps', bbox_inches='tight')
     plt.clf()
 
@@ -102,7 +105,7 @@ def makeAIs(t):
 #  INITIALIZATION OF VARIABLES  
 #-------------------------------
  # Number of rounds of play to run
-num_tests = 100000
+num_tests = 1000000
 
 # Interval at which to train
 
@@ -124,7 +127,7 @@ n = 13;
 gamma = 0.9
 
 # Strategies that each player should use to play
-strategies = [4,3,4,3]
+strategies = [4,4,4,4]
 bet_strategies = ['model','model','model','model']
 
 # For saving the game state after each game
@@ -156,9 +159,9 @@ bet_model = construct_bet_NN(n)
 action_model = construct_play_NN(n)
 
 datatype='matrix'
-hvh = keras.models.load_model('Models/Heuristic_v_Heuristic_bet_data_model_' + datatype + '_model.h5',
-                                                   custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
-bet_models = [bet_model, hvh, bet_model, hvh]
+#hvh = keras.models.load_model('Models/Heuristic_v_Heuristic_bet_data_model_' + datatype + '_model.h5',
+#                                                   custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
+bet_models = [bet_model, bet_model, bet_model, bet_model]
 
 
 #--------------------------
@@ -207,7 +210,7 @@ for t in range(1,num_tests+1):
     Tricks.append(game.tricks)
     
     # Save data for training; pick a random player and train with their data
-    for p in rnd.sample(range(4),1):
+    for p in range(4): #rnd.sample(range(4),1):
         # Save the hands as training data for the betting NN
         init_hands[p].sort()
         x_train.append( init_hands[p].get_cards_as_matrix() )
@@ -245,8 +248,12 @@ for t in range(1,num_tests+1):
         
         print 'Done.'
     
+        # Reset training data
         x_train = []
         y_train = []
+        for key in x_train_RL:
+            x_train_RL[key] = []
+        y_train_RL = []
         
     # Train the playing NN
     if (t + train_offset) % train_interval == 0:
@@ -267,6 +274,8 @@ for t in range(1,num_tests+1):
         print 'Done.'
         
         # Reset training data
+        x_train = []
+        y_train = []
         for key in x_train_RL:
             x_train_RL[key] = []
         y_train_RL = []

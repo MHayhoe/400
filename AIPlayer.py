@@ -55,7 +55,7 @@ class AIPlayer:
         # Playing NN
         elif self.strategy == 4: 
             # Greedily exploit current value function w.p. 1 - eps
-            if rnd.random() > self.eps:
+            if rnd.random() >= self.eps:
                 potential_states = self.get_potential_states(n, p, state, actions, current_winner)
                 values = self.action_model.predict(potential_states)
                 ind = np.argmax(values)

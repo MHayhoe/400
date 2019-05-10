@@ -64,6 +64,9 @@ def construct_play_NN(n, show_summary=False):
     xo = L.Conv2D(1, 1, activation='linear', use_bias=False, kernel_regularizer=R.l2(reg))(xo)
     xo = L.BatchNormalization(axis=1)(xo)
     xo = L.LeakyReLU()(xo)
+    xo = L.Conv2D(2, (1,4), activation='linear', use_bias=False, kernel_regularizer=R.l2(reg))(xo)
+    xo = L.BatchNormalization(axis=1)(xo)
+    xo = L.LeakyReLU()(xo)
     xo = L.Flatten()(xo)
     
     # Branch for the history of which player played each card
@@ -71,11 +74,17 @@ def construct_play_NN(n, show_summary=False):
     xp = L.Conv2D(1, 1, activation='linear', use_bias=False, kernel_regularizer=R.l2(reg))(xp)
     xp = L.BatchNormalization(axis=1)(xp)
     xp = L.LeakyReLU()(xp)
+    xp = L.Conv2D(2, (1,4), activation='linear', use_bias=False, kernel_regularizer=R.l2(reg))(xp)
+    xp = L.BatchNormalization(axis=1)(xp)
+    xp = L.LeakyReLU()(xp)
     xp = L.Flatten()(xp)
     
     # Branch for the current player's hand
     xh = L.Reshape((4,13,1))(input_hand)
     xh = L.Conv2D(1, 1, activation='linear', use_bias=False, kernel_regularizer=R.l2(reg))(xh)
+    xh = L.BatchNormalization(axis=1)(xh)
+    xh = L.LeakyReLU()(xh)
+    xh = L.Conv2D(2, (1,4), activation='linear', use_bias=False, kernel_regularizer=R.l2(reg))(xh)
     xh = L.BatchNormalization(axis=1)(xh)
     xh = L.LeakyReLU()(xh)
     xh = L.Flatten()(xh)
