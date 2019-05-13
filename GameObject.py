@@ -150,15 +150,14 @@ class Game:
         else: # Don't need the state, e.g. random, greedy
             state = []
         # Check if we care about the current winning card (to determine who wins a trick)
-        if (np.max(self.state['order']) + 1) % 4 == 0: # 3 cards have been played this trick
+        if (np.max(self.state['order'])) % 4 > 0: # some cards have been played this trick
+        #if (np.max(self.state['order']) + 1) % 4 == 0: # 3 cards have been played this trick
             current_winner = np.max([cc for cc in self.h[current_round] if cc is not None])
         else:
             current_winner = None
-        potential_states = self.aiplayers[p].get_potential_states(self.num_rounds, p, state, valid_cards, current_winner)
-        values = self.aiplayers[p].action_model.predict(potential_states)
-        for x in range(len(values)):
-            self.printVerbose(str(valid_cards[x]) + ': ' + str(values[x]))
-        return self.H[p].play(self.H[p].validToRealIndex( self.aiplayers[p].get_action(self.n, p, state, valid_cards, current_winner) ));
+
+        chosen_action = self.aiplayers[p].get_action(self.n, p, state, valid_cards, current_winner)
+        return self.H[p].play(self.H[p].validToRealIndex( chosen_action ));
 
     #To handle AI bets for player p
     def aiBet(self, p, strategy=1):
@@ -178,7 +177,7 @@ class Game:
             else:
                 self.bets[p] = self.aiBet(p, self.player_strategy[p])
             
-            self.printVerbose('Player ' + str(p) + ' bet '  +str(self.bets[p]))
+            self.printVerbose('Player ' + str(p+1) + ' bet '  +str(self.bets[p]))
 
 
     # ----- PLAYING ROUNDS -----
@@ -237,6 +236,7 @@ class Game:
             
             # Loop through players
             for p in self.play_order[t]:
+                print str(p+1) + ': ' + str(self.bets[p]) + ' bet, ' + str(self.tricks[p]) + ' won'
                 if self.player_strategy[p] == 0: # Ask for human input
                     self.h[t][p] = self.humanInput(p);
                 else:                   # Ask for AI input with strategy in player_strategy[p]

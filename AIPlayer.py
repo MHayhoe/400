@@ -55,9 +55,13 @@ class AIPlayer:
         # Playing NN
         elif self.strategy == 4: 
             # Greedily exploit current value function w.p. 1 - eps
-            if rnd.random() >= self.eps:
+            if self.eps == 0 or rnd.random() >= self.eps:
                 potential_states = self.get_potential_states(n, p, state, actions, current_winner)
                 values = self.action_model.predict(potential_states)
+                for x in range(len(values)):
+                    print str(actions[x]) + ': ' + str(values[x])
+                #for x in range(len(values)):
+                #    print str(actions[x]) + ': ' + str(values[x])
                 ind = np.argmax(values)
             # Take random action w.p. eps
             else:
@@ -125,9 +129,10 @@ class AIPlayer:
             # Get current action being considered
             a = actions[j];
             # Build the potential state after the action is taken
-            state['order'][0, a.suit * n + a.value - 2] = count + 1
-            state['players'][0, a.suit * n + a.value - 2] = 1
-            state['hand'][0, a.suit * n + a.value - 2] = 0
+            aind = a.suit * n + a.value - 2
+            state['order'][0, aind] = count + 1
+            state['players'][0, aind] = 1
+            state['hand'][0, aind] = 0
             if change_lead:     # The lead was changed
                 state['lead'] = a.suit + 1
             if (count + 1) % 4 == 0 and current_winner is not None:    # Update tricks
@@ -140,9 +145,9 @@ class AIPlayer:
             for key in state:
                 data[key][j,] = state[key]
             # Remove the potential state
-            state['order'][0, a.suit * n + a.value - 2] = 0
-            state['players'][0, a.suit * n + a.value - 2] = 0
-            state['hand'][0, a.suit * n + a.value - 2] = 1
+            state['order'][0, aind] = 0
+            state['players'][0, aind] = 0
+            state['hand'][0, aind] = 1
             if change_lead:
                 state['lead'] = -1
             if (count + 1) % 4 == 0:    # Update tricks
