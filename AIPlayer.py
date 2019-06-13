@@ -58,8 +58,6 @@ class AIPlayer:
             if self.eps == 0 or rnd.random() >= self.eps:
                 potential_states = self.get_potential_states(n, p, state, actions, current_winner)
                 values = self.action_model.predict(potential_states)
-                for x in range(len(values)):
-                    print str(actions[x]) + ': ' + str(values[x])
                 #for x in range(len(values)):
                 #    print str(actions[x]) + ': ' + str(values[x])
                 ind = np.argmax(values)
@@ -134,7 +132,7 @@ class AIPlayer:
             state['players'][0, aind] = 1
             state['hand'][0, aind] = 0
             if change_lead:     # The lead was changed
-                state['lead'] = a.suit + 1
+                state['lead'] = a.suit
             if (count + 1) % 4 == 0 and current_winner is not None:    # Update tricks
                 if a > current_winner: # If this would win
                     pwin = 0
@@ -150,7 +148,7 @@ class AIPlayer:
             state['hand'][0, aind] = 1
             if change_lead:
                 state['lead'] = -1
-            if (count + 1) % 4 == 0:    # Update tricks
+            if (count + 1) % 4 == 0 and current_winner is not None:    # Update tricks
                 state['tricks'][0, pwin] -= 1
             
         return data

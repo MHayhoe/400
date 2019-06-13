@@ -124,7 +124,7 @@ ties = 0.0
 n = 13;
 
 # Discount factor for the reward
-gamma = 0.9
+gamma = 0.99
 
 # Strategies that each player should use to play
 strategies = [4,4,4,4]

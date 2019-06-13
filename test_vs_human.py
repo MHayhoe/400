@@ -1,14 +1,7 @@
-import numpy as np
-import random as rnd
-import datetime as dt
-import matplotlib.pyplot as plt
 import keras
-import os
 
 from GameObject import Game
 from AIPlayer import AIPlayer
-from Models import initialize_parameters, construct_bet_NN, construct_play_NN
-from Loss import batch_loss_history
 from Loss import loss_bet,get_loss_bet
 
 # Play with 13 cards (whole deck)
@@ -20,8 +13,8 @@ strategies = [0,4,4,4]
 bet_strategies = ['none','model','model','model']
 
 # Load the NN models
-timeStamp = '2019-05-08-14-24-2'
-iter = 10000
+timeStamp = '2019-06-11-14-44-37'
+iter = 30000
 bet_model = keras.models.load_model('Models/bet_' + timeStamp +'_' + str(iter) +'.h5',custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
 action_model = keras.models.load_model('Models/action_' + timeStamp +'_' + str(iter) +'.h5',custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
 

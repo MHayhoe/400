@@ -22,7 +22,7 @@ class Game:
 
         # For tracking the state for the playing NN
         self.state = {'order': np.zeros((1,52)),'players': np.zeros((1,52))};
-        
+                
         self.play_order = [[] for i in range(num_rounds)]
 
         # There's a human player, so we want to print
@@ -101,11 +101,12 @@ class Game:
     
     # Returns the state in a form that's expected by the playing NN (builds
     # from scratch; should only be used externally to save training data)
-    def action_state(self, player, current_round):
+    def action_state(self, current_round):
         count = 1;
         state = {}
-        state['order'] = np.zeros((1,52));
-        state['players'] = np.zeros((1,52));
+        state['order'] = np.zeros((1,self.n*4));
+        state['players'] = np.zeros((1,self.n*4));
+        state['tricks'] = np.zeros((1,4));
         
         # Loop through previous rounds
         for t in range(current_round):
@@ -115,6 +116,17 @@ class Game:
                     state['order'][0,c.suit*self.n + c.value-2] = count;
                     count = count + 1;
                     state['players'][0,c.suit*self.n + c.value-2] = p + 1;
+                    if self.T[t] == p:
+                        state['tricks'][0,p] = state['tricks'][0,p] + 1
+            
+        state['bets'] = np.reshape(self.bets,(1,4));
+        
+        return state
+    
+    # Make the state relative to player
+    def relativize_state(self, state, player, current_round):
+        # Find the current number of played cards
+        count = self.n*current_round
         
         # Loop through current round, up to and including 'player'
         for p in self.play_order[current_round]:
@@ -124,20 +136,47 @@ class Game:
             state['players'][0,c.suit*self.n + c.value-2] = p + 1;
             if p == player:
                 break
-            
-        # Find tricks up until now
-        tricks = [sum([self.T[t] == p for t in range(current_round+1)]) for p in range(4)]
+        # Find the lead suit in this round
+        state['lead'] = np.array(self.leads[current_round])
         
         # Change the state to be relative to this player
         for i in range(self.n*4):
             state['players'][0,i] = (state['players'][0,i] - (player + 1)) % 4 + 1
-        state['tricks'] = np.reshape(tricks[player:] + tricks[:player],(1,4));
-        state['bets'] = np.reshape(self.bets[player:] + self.bets[:player],(1,4));  
-        
+        if player > 0:
+            np.roll(state['tricks'],p)
+            state['bets'] = np.reshape(self.bets[player:] + self.bets[:player],(1,4)) 
         state['hand'] = self.H_history[current_round][player].get_cards_binary(self.n)
-        state['lead'] = np.array(self.leads[current_round])
         
         return state
+        
+    
+    # Returns the state in a form that's expected by the playing NN (builds
+    # from scratch; should only be used externally to save training data).
+    # Returns one state for each possible action to be taken
+    def potential_states(self, state, player, current_round):
+        # Get all playable cards (i.e., all possible actions), respecting lead suit
+        oldLead = Card.lead
+        if self.play_order[current_round][0] == player:
+            Card.lead = -1
+        else:
+            Card.lead = state['lead']
+        valid_cards = self.H_history[current_round][player].validCards()
+        Card.lead = oldLead
+        
+        # Remove the action that player took in the game, i.e., last action taken
+        currInd = np.argmax( state['order'][0,:] )
+        state['order'][0,currInd] = 0
+        state['players'][0,currInd] = 0
+        
+        # Check if we care about the current winning card (to determine who wins a trick)
+        currCount = (np.max(state['order'])) % 4
+        if currCount > 0: # some cards have been played this trick
+            current_winner = np.max([self.h[current_round][c] for c in self.play_order[current_round] if c < currCount])
+        else:
+            current_winner = None
+            
+        return self.aiplayers[player].get_potential_states(self.n,player,state,valid_cards,current_winner)
+    
     
     # To handle AI input for player p     
     def aiInput(self, p, current_round, strategy, valid_cards):
@@ -236,7 +275,7 @@ class Game:
             
             # Loop through players
             for p in self.play_order[t]:
-                print str(p+1) + ': ' + str(self.bets[p]) + ' bet, ' + str(self.tricks[p]) + ' won'
+                self.printVerbose(str(p+1) + ': ' + str(self.bets[p]) + ' bet, ' + str(self.tricks[p]) + ' won')
                 if self.player_strategy[p] == 0: # Ask for human input
                     self.h[t][p] = self.humanInput(p);
                 else:                   # Ask for AI input with strategy in player_strategy[p]
