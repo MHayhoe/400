@@ -138,7 +138,7 @@ train_offset = train_interval/2;
 # Number of samples to use for DQN training
 train_batch_size = 100
 # Memory buffer size of episodes to store
-train_memory = 1000
+train_memory = 10000
 
 
 # For tracking scores in the games
@@ -183,8 +183,13 @@ os.mkdir('Plots/'+timeString +'/')
 [sgd, opt, batchsize, num_epochs, reg] = initialize_parameters()
     
 # Initialize the Neural Nets
-bet_model = construct_bet_NN(n)
-action_model = construct_play_NN(n)
+timeStamp = '2019-06-13-16-5-29'
+iter = 100000
+bet_model = keras.models.load_model('Models/bet_' + timeStamp +'_' + str(iter) +'.h5',custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
+action_model = keras.models.load_model('Models/action_' + timeStamp +'_' + str(iter) +'.h5',custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
+
+#bet_model = construct_bet_NN(n)+
+#action_model = construct_play_NN(n)
 target_action_model = copy_target(action_model)
 
 datatype='matrix'
@@ -276,8 +281,10 @@ for t in range(1,num_tests+1):
         # If we have more saved episodes than our memory allows, remove old data
         if len(y_train_RL) > train_memory:
             y_train_RL = y_train_RL[-train_memory:]
+            y_train = y_train[-train_memory:]
             for key in x_train_RL:
                 x_train_RL[key] = x_train_RL[key][-train_memory:]
+                x_train[key] = x_train[key][-train_memory:]
                 
         sample_inds = rnd.sample( range(len(x_train_RL['tricks'])), train_batch_size )
         x_sample = {}
@@ -327,8 +334,8 @@ for t in range(1,num_tests+1):
         print 'Done.'
         
         # Reset training data
-        x_train = []
-        y_train = []
+        #x_train = []
+        #y_train = []
     
     # Save the models after they have been trained 10 times
     if t % (train_interval*10) == 0:

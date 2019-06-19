@@ -13,8 +13,8 @@ strategies = [0,4,4,4]
 bet_strategies = ['none','model','model','model']
 
 # Load the NN models
-timeStamp = '2019-06-11-14-44-37'
-iter = 30000
+timeStamp = '2019-06-13-16-5-29'
+iter = 100000
 bet_model = keras.models.load_model('Models/bet_' + timeStamp +'_' + str(iter) +'.h5',custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
 action_model = keras.models.load_model('Models/action_' + timeStamp +'_' + str(iter) +'.h5',custom_objects={'get_loss_bet': get_loss_bet, 'loss_bet': loss_bet})
 
